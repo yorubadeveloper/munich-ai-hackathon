@@ -18,6 +18,11 @@ from models import Company, Research, UserProfile, AgentLog
 from tools.tavily_client import search
 from tools.gemini_client import synthesise_research, score_fit, pick_best_contact
 from tools.unipile_client import search_linkedin_people
+from tools.safe_http import (
+    UnsafeOutboundRequestError,
+    public_https_url_host,
+    validate_public_https_url,
+)
 
 log = logging.getLogger(__name__)
 
@@ -33,6 +38,26 @@ TARGET_TITLES = [
     "Head of Talent",
     "Technical Recruiter",
 ]
+
+
+def _safe_site_filter(website: str | None) -> str:
+    if not website:
+        return ""
+    try:
+        return f"site:{public_https_url_host(website).removeprefix('www.')}"
+    except UnsafeOutboundRequestError as exc:
+        log.warning(f"Skipping unsafe company website during research: {exc}")
+        return ""
+
+
+def _safe_job_url(job_url: str | None) -> str:
+    if not job_url:
+        return ""
+    try:
+        return validate_public_https_url(job_url)
+    except UnsafeOutboundRequestError as exc:
+        log.warning(f"Skipping unsafe job URL during research: {exc}")
+        return ""
 
 
 @dataclass
@@ -111,7 +136,7 @@ async def run(company: Company, db: AsyncSession) -> ResearchResult:
 
     # ── ACT 2: company facts via web search ──
     # If the user provided a domain/website (e.g. atira.ai), scope searches to it.
-    site_filter = f"site:{company.website.replace('https://','').replace('http://','').replace('www.','').split('/')[0]}" if company.website else ""
+    site_filter = _safe_site_filter(company.website)
 
     queries = [
         f"{company.name} {site_filter} funding round" if site_filter else f"{company.name} funding round",
@@ -123,9 +148,10 @@ async def run(company: Company, db: AsyncSession) -> ResearchResult:
     # If the user provided a specific Job Posting URL (e.g. Ashby/Greenhouse),
     # query Tavily specifically for it. Since Tavily uses headless browsers,
     # it easily bypasses SPA/JS-only blank screens and extracts the full JD!
-    if company.job_url:
-        log.info(f"Targeting specific job URL via Tavily: {company.job_url}")
-        job_results = await search(company.job_url, max_results=1)
+    safe_job_url = _safe_job_url(company.job_url)
+    if safe_job_url:
+        log.info(f"Targeting specific job URL via Tavily: {safe_job_url}")
+        job_results = await search(safe_job_url, max_results=1)
         if job_results:
             raw_results.extend(job_results)
 

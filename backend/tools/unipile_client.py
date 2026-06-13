@@ -4,10 +4,9 @@ Handles LinkedIn DM sending and reply checking.
 7-day free trial: https://www.unipile.com
 
 Email delivery goes through Resend (https://resend.com) over its HTTP API,
-reusing httpx so no extra SDK/SMTP handling is needed.
+using the shared safe HTTP helper so no extra SDK/SMTP handling is needed.
 """
 import logging
-import httpx
 from urllib.parse import urlsplit
 
 from config import settings
