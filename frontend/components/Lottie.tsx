@@ -18,6 +18,13 @@ export default function Lottie({
   const [data, setData] = useState<any>(null)
 
   useEffect(() => {
+    // SSRF/CSRF Hardening: Only allow local relative paths starting with '/'.
+    // Reject any absolute URLs, external schemes, or double slashes.
+    if (!src.startsWith('/') || /^(https?:)?\/\//i.test(src)) {
+      console.warn("Blocked external or absolute Lottie URL to prevent SSRF:", src)
+      return
+    }
+
     let alive = true
     fetch(src)
       .then((r) => r.json())

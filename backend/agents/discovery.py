@@ -280,7 +280,7 @@ async def run(db: AsyncSession) -> list[Company]:
                 website=url,
                 job_url=url,
                 source=_domain(url),
-                raw_job_text=(r.get("content", "") or "")[:4000],
+                raw_job_text=(r.get("content", "") or ""),
                 status="discovered",
             )
             db.add(company)

@@ -7,7 +7,8 @@ import { addCompany } from '@/lib/api'
 export default function AddCompany({ onAdded }: { onAdded?: () => void }) {
   const [open, setOpen] = useState(false)
   const [name, setName] = useState('')
-  const [url, setUrl] = useState('')
+  const [companyUrl, setCompanyUrl] = useState('')
+  const [jobUrl, setJobUrl] = useState('')
   const [jd, setJd] = useState('')
   const [submitting, setSubmitting] = useState(false)
   const [mounted, setMounted] = useState(false)
@@ -20,14 +21,20 @@ export default function AddCompany({ onAdded }: { onAdded?: () => void }) {
 
   const reset = () => {
     setName('')
-    setUrl('')
+    setCompanyUrl('')
+    setJobUrl('')
     setJd('')
   }
 
   const submit = async () => {
     if (!name.trim() || submitting) return
     setSubmitting(true)
-    await addCompany({ name: name.trim(), url: url.trim(), job_description: jd.trim() })
+    await addCompany({
+      name: name.trim(),
+      company_url: companyUrl.trim(),
+      job_url: jobUrl.trim(),
+      job_description: jd.trim(),
+    })
     setSubmitting(false)
     reset()
     setOpen(false)
@@ -112,7 +119,7 @@ export default function AddCompany({ onAdded }: { onAdded?: () => void }) {
               autoFocus
               value={name}
               onChange={(e) => setName(e.target.value)}
-              placeholder="Personio"
+              placeholder="Atira"
               style={inputStyle}
               onKeyDown={(e) => {
                 if (e.key === 'Enter' && !e.shiftKey) submit()
@@ -120,14 +127,25 @@ export default function AddCompany({ onAdded }: { onAdded?: () => void }) {
             />
           </Field>
 
-          <Field label="Website or job URL (optional)">
-            <input
-              value={url}
-              onChange={(e) => setUrl(e.target.value)}
-              placeholder="personio.com  or  link to the role"
-              style={inputStyle}
-            />
-          </Field>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 14 }}>
+            <Field label="Company website (optional)">
+              <input
+                value={companyUrl}
+                onChange={(e) => setCompanyUrl(e.target.value)}
+                placeholder="atira.ai"
+                style={inputStyle}
+              />
+            </Field>
+
+            <Field label="Job posting URL (optional)">
+              <input
+                value={jobUrl}
+                onChange={(e) => setJobUrl(e.target.value)}
+                placeholder="Ashby / Greenhouse link"
+                style={inputStyle}
+              />
+            </Field>
+          </div>
 
           <Field label="Paste the job description (optional)">
             <textarea

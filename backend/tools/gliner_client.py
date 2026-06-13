@@ -122,7 +122,7 @@ async def extract_job_entities(text: str) -> dict:
                 },
                 json={
                     "model_id": settings.pioneer_model_id,
-                    "text": text[:4000],
+                    "text": text,
                     "schema": {"entities": JOB_ENTITY_LABELS},
                     "threshold": 0.5,
                 },

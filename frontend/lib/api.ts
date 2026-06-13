@@ -66,7 +66,8 @@ export async function deleteCompany(companyId: string) {
 
 export async function addCompany(data: {
   name: string
-  url?: string
+  company_url?: string
+  job_url?: string
   job_description?: string
 }) {
   try {

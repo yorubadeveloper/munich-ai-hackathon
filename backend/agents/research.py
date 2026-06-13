@@ -135,6 +135,13 @@ async def run(company: Company, db: AsyncSession) -> ResearchResult:
 
     # OBSERVE: synthesise company facts with Gemini.
     enriched = await synthesise_research(company.name, raw_results)
+    
+    # Critical: inject the raw job description text (if available) into the 
+    # enrichment data before scoring. This guarantees the fit evaluator sees the 
+    # exact tech requirements from the posting, even if generic web searches missed them!
+    if company.raw_job_text:
+        enriched["job_description_requirements"] = company.raw_job_text
+
     fit = await score_fit(enriched, profile)
 
     # Prefer the LinkedIn-verified contact; fall back to whatever Gemini guessed.

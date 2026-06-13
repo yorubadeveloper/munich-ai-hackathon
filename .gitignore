@@ -26,3 +26,4 @@ build/
 .gsd
 .bg-shell
 uv.lock
+/frontend/tsconfig.tsbuildinfo

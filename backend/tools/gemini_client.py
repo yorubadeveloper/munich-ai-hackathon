@@ -71,7 +71,7 @@ Scoring deductions (only apply if the candidate has EXPLICITLY specified a prefe
 - Only deduct for industry mismatch if the candidate has listed target industries AND the company clearly violates them.
 - Only deduct for funding stage mismatch if the candidate has listed target funding stages AND the company clearly violates them.
 - Only deduct for company size mismatch if the candidate has listed a company size range AND the company clearly violates it.
-- If a listed dealbreaker (e.g. unpaid) is present in the company summary, hard-cap the score at 2.0.
+- Only trigger a dealbreaker penalty (hard-cap at 2.0) if the SPECIFIC role being evaluated for the candidate (e.g. Software Engineer) violates a dealbreaker (e.g. the role itself is unpaid, or the role itself is an internship). Do NOT penalize the company just because they have hired interns, part-time staff, or other roles in unrelated departments.
 
 Return valid JSON only, in this exact order (reasoning first, then the number):
 {{
@@ -160,7 +160,7 @@ async def synthesise_research(company_name: str, results: list[dict]) -> dict:
     content = "\n\n".join(
         [
             f"Title: {r.get('title')}\nURL: {r.get('url')}\n"
-            f"Content: {r.get('content', '')[:500]}"
+            f"Content: {r.get('content', '') or r.get('raw_content', '')}"
             for r in results[:8]
         ]
     )

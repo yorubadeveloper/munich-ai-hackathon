@@ -7,6 +7,7 @@ Email delivery goes through Resend (https://resend.com) over its HTTP API,
 reusing httpx so no extra SDK/SMTP handling is needed.
 """
 import logging
+import httpx
 from urllib.parse import urlsplit
 
 from config import settings
@@ -97,8 +98,10 @@ async def search_linkedin_people(
     `provider_id` is Unipile's internal person id (the "ACoAA..." value) which is
     what /messages needs as an attendee to actually send a DM.
     """
-    if not settings.unipile_api_key or not settings.unipile_account_id:
+    config = _unipile_config()
+    if config is None or not settings.unipile_account_id:
         return []
+    unipile_base, unipile_host = config
 
     # Combine role keywords with the company so results are scoped to that company.
     kw = keywords
@@ -111,9 +114,9 @@ async def search_linkedin_people(
         "keywords": kw,
     }
     try:
-        async with httpx.AsyncClient() as client:
+        async with safe_async_client(allowed_hosts={unipile_host}) as client:
             response = await client.post(
-                f"{UNIPILE_BASE}/linkedin/search",
+                f"{unipile_base}/linkedin/search",
                 params={"account_id": settings.unipile_account_id, "limit": limit},
                 headers={
                     "X-API-KEY": settings.unipile_api_key,

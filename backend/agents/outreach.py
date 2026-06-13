@@ -45,27 +45,35 @@ THE COMPANY:
 - Their tech stack: {tech_stack}
 
 CHANNEL: {channel}
-- linkedin: 1 to 3 short sentences, under 280 characters total, no greeting fluff,
-  no signature, no links unless essential. Sound like a DM, not a cover letter.
-- email: under 110 words, with a specific subject line. One short paragraph.
 
-VOICE AND CONTENT RULES:
-- Sound like a real engineer who did 5 minutes of homework, not a recruiter.
-- Open with a concrete, specific hook about THEM (a product detail, the recent
-  signal, something technical) - not "I came across your company".
-- Then one line on what {user_name} actually builds that is relevant. Be concrete.
-- Make the relevance obvious without saying "my experience aligns with your focus".
-- One clear ask: a short call. Keep it low-pressure ("worth a quick chat?").
-- Plain, direct language. Contractions are good.
+LINKEDIN DM STRICT BLUEPRINT (MUST BE EXACTLY 3 SENTENCES, MAX 290 CHARACTERS):
+- Sentence 1 (The Hook): "Hi {hiring_manager}, saw {company_name} is building {company_summary}."
+  (Be specific: mention their product niche like AI-agents for machinery CPQ, do NOT say "I came across your company" or "congrats on your funding").
+- Sentence 2 (Your Pitch + Project): "I build {job_title} systems and recently shipped {projects}."
+  (Be concrete: reference a specific project you built from your list that matches their stack, with a real metric if available).
+- Sentence 3 (The Low-Pressure Ask): "Worth a short chat about the role?"
 
-BANNED (do not write any of these or anything like them):
+EMAIL STRICT BLUEPRINT (MAX 100 WORDS, SHORT SINGLE PARAGRAPH):
+- Subject: A highly specific, non-spammy subject line mentioning your name, role, and their product focus.
+- Hi {hiring_manager},
+- Sentence 1: Concrete, technical hook about what {company_name} is building (e.g. AI-agents for mechanical sales CPQ).
+- Sentence 2: Introduce {user_name} as a {job_title} and state what relevant production systems/projects you have built (reference your projects list, e.g. SyncStudy).
+- Sentence 3: Connect your work directly to their challenges (e.g. scaling pipelines, multi-tenancy, integrations).
+- Sentence 4: Low-pressure ask for a short call to discuss how your backend/cloud experience could contribute.
+- Thanks, {user_name}
+
+VOICE AND CONTENT RULES (HARD RULES):
+- Sound like a real engineer writing a quick message to a peer, not a generic HR application.
+- Absolutely NO generic praise fluff like "I find your focus truly compelling" or "your work is deeply interesting".
+- Lead with what you BUILD, not what you want.
+- No emojis, no hashtags, no bullet points, no em dashes, no signature in LinkedIn.
+
+BANNED PHRASES:
 - "I hope this message finds you well"
 - "I am very passionate about" / "deeply passionate"
-- "my experience in X aligns with Y" / "aligns with your focus/mission"
-- "I'd love to" used more than once
+- "my experience aligns with your focus/mission"
 - "caught my eye" / "reached out"
-- em dashes, bullet points, hashtags, emojis
-- generic praise with no specific detail
+- "I'd love to discuss" (too generic)
 
 Return valid JSON only, no markdown, no extra text:
 {{
