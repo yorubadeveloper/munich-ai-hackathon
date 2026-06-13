@@ -4,10 +4,10 @@ The model is also synchronous under the hood, so each call is offloaded to a
 thread. All structured calls go through a defensive JSON extractor because LLMs
 occasionally wrap output in markdown fences or add stray prose.
 """
-import json
-import re
 import asyncio
+import json
 import logging
+import re
 
 import google.generativeai as genai
 

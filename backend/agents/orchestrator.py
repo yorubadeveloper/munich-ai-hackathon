@@ -9,10 +9,10 @@ import logging
 
 from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Company, AgentLog
-from agents import discovery, research, outreach, delivery
-from tools.telegram_client import send_approval_request
+from agents import delivery, discovery, outreach, research
 from database import AsyncSessionLocal
+from models import AgentLog, Company
+from tools.telegram_client import send_approval_request
 
 log = logging.getLogger(__name__)
 
@@ -94,8 +94,9 @@ async def run_pipeline(company_id: str):
                         company_id=company.id,
                     )
                     # Fetch research so the approval card can show company context.
-                    from models import Research as _Research
                     from sqlalchemy import select as _select
+
+                    from models import Research as _Research
 
                     rr = await db.execute(
                         _select(_Research).where(_Research.company_id == company.id)

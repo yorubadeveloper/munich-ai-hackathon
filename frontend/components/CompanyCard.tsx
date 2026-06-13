@@ -3,6 +3,7 @@ import { useState } from 'react'
 import { UserCircle, LinkedinLogo, ArrowClockwise, CircleNotch, Trash } from '@phosphor-icons/react'
 import StatusBadge from './StatusBadge'
 import { rerunResearch, deleteCompany } from '@/lib/api'
+import type { Company } from '@/lib/api'
 
 function FitRing({ score }: { score: number }) {
   const pct = Math.max(0, Math.min(100, (score / 10) * 100))
@@ -48,10 +49,11 @@ export default function CompanyCard({
   company,
   onRerun,
 }: {
-  company: any
+  company: Company
   onRerun?: () => void
 }) {
-  const hasScore = company.fit_score != null
+  const fitScore = company.fit_score
+  const hasScore = fitScore != null
   const tech = (company.tech_stack || []).slice(0, 3)
   const [rerunning, setRerunning] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -130,7 +132,7 @@ export default function CompanyCard({
           />
         </div>
       ) : hasScore ? (
-        <FitRing score={company.fit_score} />
+        <FitRing score={fitScore} />
       ) : (
         <div
           style={{
@@ -229,7 +231,7 @@ export default function CompanyCard({
         {(company.funding_stage || tech.length > 0) && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {company.funding_stage && <span className="tag">{company.funding_stage}</span>}
-            {tech.map((t: string) => (
+            {tech.map((t) => (
               <span key={t} className="tag">
                 {t}
               </span>

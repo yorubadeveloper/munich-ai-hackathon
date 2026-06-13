@@ -6,7 +6,6 @@ import {
   Brain,
   PenNib,
   PaperPlaneTilt,
-  ChatCircleDots,
   ShieldCheck,
 } from '@phosphor-icons/react'
 import Lottie from '@/components/Lottie'

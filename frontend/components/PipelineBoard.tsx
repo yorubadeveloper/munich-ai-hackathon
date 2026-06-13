@@ -13,6 +13,7 @@ import {
   Icon,
 } from '@phosphor-icons/react'
 import CompanyCard from './CompanyCard'
+import type { Company } from '@/lib/api'
 
 const COLUMNS: { key: string; label: string; icon: Icon }[] = [
   { key: 'discovered', label: 'Discovered', icon: MagnifyingGlass },
@@ -89,7 +90,7 @@ export default function PipelineBoard({
   running,
   onRefresh,
 }: {
-  companies: any[]
+  companies: Company[]
   onRun?: () => void
   running?: boolean
   onRefresh?: () => void

@@ -1,5 +1,5 @@
 'use client'
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Plus, X, PaperPlaneRight } from '@phosphor-icons/react'
 import { addCompany } from '@/lib/api'
@@ -11,13 +11,6 @@ export default function AddCompany({ onAdded }: { onAdded?: () => void }) {
   const [jobUrl, setJobUrl] = useState('')
   const [jd, setJd] = useState('')
   const [submitting, setSubmitting] = useState(false)
-  const [mounted, setMounted] = useState(false)
-
-  // Portal target document.body is only available on the client after mount.
-  useEffect(() => {
-    setMounted(true)
-    return () => setMounted(false)
-  }, [])
 
   const reset = () => {
     setName('')
@@ -180,7 +173,7 @@ export default function AddCompany({ onAdded }: { onAdded?: () => void }) {
   return (
     <>
       {triggerButton}
-      {mounted && createPortal(modalOverlay, document.body)}
+      {typeof document !== 'undefined' && createPortal(modalOverlay, document.body)}
     </>
   )
 }

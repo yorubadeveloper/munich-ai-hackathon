@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Company, Research
 from database import get_db
+from models import Company, Research
 
 router = APIRouter()
 
@@ -46,8 +46,9 @@ async def delete_company(company_id: str, db: AsyncSession = Depends(get_db)):
     Delete a company and all of its associated records (research, messages, logs)
     to keep foreign key references clean.
     """
-    from models import Research, Message, AgentLog
     from sqlalchemy import delete
+
+    from models import AgentLog, Message, Research
 
     # Delete linked child rows first.
     await db.execute(delete(Research).where(Research.company_id == company_id))

@@ -1,5 +1,6 @@
 'use client'
 import { useEffect, useRef } from 'react'
+import type { AnimationItem } from 'lottie-web'
 
 /**
  * Thin wrapper around lottie-web that renders bundled animation data.
@@ -18,7 +19,7 @@ export default function Lottie({
 
   useEffect(() => {
     if (!animationData || !ref.current) return
-    let anim: any
+    let anim: AnimationItem | null = null
     let cancelled = false
     import('lottie-web').then((mod) => {
       if (cancelled || !ref.current) return
@@ -32,7 +33,7 @@ export default function Lottie({
     })
     return () => {
       cancelled = true
-      if (anim) anim.destroy()
+      anim?.destroy()
     }
   }, [animationData, loop])
 

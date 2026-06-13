@@ -7,11 +7,11 @@ Observe: store conversation ID for reply tracking.
 from dataclasses import dataclass
 from datetime import datetime
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Company, Research, Message, AgentLog
-from tools.unipile_client import send_linkedin_dm, send_email
+from models import AgentLog, Company, Message, Research
+from tools.unipile_client import send_email, send_linkedin_dm
 
 
 @dataclass

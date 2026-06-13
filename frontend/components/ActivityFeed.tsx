@@ -9,6 +9,7 @@ import {
   CircleNotch,
   Icon,
 } from '@phosphor-icons/react'
+import type { AgentLog } from '@/lib/api'
 
 type AgentMeta = { label: string; icon: Icon }
 
@@ -37,7 +38,7 @@ export default function ActivityFeed({
   logs,
   running,
 }: {
-  logs: any[]
+  logs: AgentLog[]
   running?: boolean
 }) {
   return (
@@ -112,12 +113,12 @@ export default function ActivityFeed({
             }}
           />
           <div style={{ display: 'flex', flexDirection: 'column', gap: 4 }}>
-            {logs.map((l, i) => {
-              const m = meta(l.agent)
+            {logs.map((logEntry, i) => {
+              const m = meta(logEntry.agent)
               const Ico = m.icon
               return (
                 <div
-                  key={l.id}
+                  key={logEntry.id}
                   className="fade-up"
                   style={{
                     display: 'flex',
@@ -167,13 +168,13 @@ export default function ActivityFeed({
                         {m.label}
                       </span>
                       <span style={{ fontSize: 10.5, color: 'var(--faint)', flexShrink: 0 }}>
-                        {timeAgo(l.created_at)}
+                        {timeAgo(logEntry.created_at)}
                       </span>
                     </div>
                     <div style={{ fontSize: 13, color: 'var(--ink)', lineHeight: 1.45 }}>
-                      {l.action}
+                      {logEntry.action}
                     </div>
-                    {l.detail && (
+                    {logEntry.detail && (
                       <div
                         style={{
                           fontSize: 12,
@@ -182,7 +183,7 @@ export default function ActivityFeed({
                           lineHeight: 1.45,
                         }}
                       >
-                        {l.detail}
+                        {logEntry.detail}
                       </div>
                     )}
                   </div>
