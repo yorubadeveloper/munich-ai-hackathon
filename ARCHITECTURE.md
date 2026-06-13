@@ -334,13 +334,15 @@ regardless of timezone).
 ## 11. Configuration & Secrets
 
 All configuration is environment-driven via `pydantic-settings` (`config.py`).
-**No secrets or account-specific values are hardcoded** — required values fail
-fast at startup if missing. See `.env.example` for the full list.
+**No secrets or account-specific values are hardcoded**. `DATABASE_URL` is
+required for API startup. Third-party integration keys are optional at startup;
+their clients skip outbound calls when not configured. See `.env.example` for
+the full list.
 
 Key variables: `GEMINI_API_KEY`, `GEMINI_MODEL`, `TAVILY_API_KEY`,
 `UNIPILE_API_KEY`, `UNIPILE_ACCOUNT_ID`, `UNIPILE_DSN`, `RESEND_API_KEY`,
 `RESEND_FROM_EMAIL`, `TELEGRAM_BOT_TOKEN`, `TELEGRAM_CHAT_ID`,
-`PIONEER_API_KEY`, `PIONEER_MODEL_ID`, `DATABASE_URL`.
+`PIONEER_API_KEY`, `PIONEER_MODEL_ID`, `DATABASE_URL`, `SYNC_DATABASE_URL`.
 
 ---
 

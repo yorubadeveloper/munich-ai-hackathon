@@ -14,6 +14,7 @@ from tools.safe_http import UnsafeOutboundRequestError, safe_async_client, valid
 
 log = logging.getLogger(__name__)
 
+
 # Unipile assigns each account a region-specific DSN (host:port), e.g.
 # "api49.unipile.com:17948". Set UNIPILE_DSN in .env to match your dashboard.
 def _normalize_unipile_dsn(raw_dsn: str) -> tuple[str, str]:
@@ -43,16 +44,27 @@ def _normalize_unipile_dsn(raw_dsn: str) -> tuple[str, str]:
     return netloc, host
 
 
-_unipile_netloc, UNIPILE_HOST = _normalize_unipile_dsn(settings.unipile_dsn)
-UNIPILE_BASE = f"https://{_unipile_netloc}/api/v1"
 RESEND_ENDPOINT = validate_https_url("https://api.resend.com/emails", {"api.resend.com"})
 
 
+def _unipile_config() -> tuple[str, str] | None:
+    if not settings.unipile_dsn or not settings.unipile_api_key:
+        log.warning("Unipile credentials not set - skipping Unipile request.")
+        return None
+    netloc, host = _normalize_unipile_dsn(settings.unipile_dsn)
+    return f"https://{netloc}/api/v1", host
+
+
 async def send_linkedin_dm(recipient_linkedin_url: str, message: str) -> dict:
+    config = _unipile_config()
+    if config is None or not settings.unipile_account_id:
+        log.warning("Unipile account id not set - skipping LinkedIn DM.")
+        return {}
+    unipile_base, unipile_host = config
     try:
-        async with safe_async_client(allowed_hosts={UNIPILE_HOST}) as client:
+        async with safe_async_client(allowed_hosts={unipile_host}) as client:
             response = await client.post(
-                f"{UNIPILE_BASE}/messages",
+                f"{unipile_base}/messages",
                 headers={
                     "X-API-KEY": settings.unipile_api_key,
                     "accept": "application/json",
@@ -72,10 +84,14 @@ async def send_linkedin_dm(recipient_linkedin_url: str, message: str) -> dict:
 
 
 async def check_linkedin_replies(conversation_id: str) -> list[dict]:
+    config = _unipile_config()
+    if config is None:
+        return []
+    unipile_base, unipile_host = config
     try:
-        async with safe_async_client(allowed_hosts={UNIPILE_HOST}) as client:
+        async with safe_async_client(allowed_hosts={unipile_host}) as client:
             response = await client.get(
-                f"{UNIPILE_BASE}/chats/{conversation_id}/messages",
+                f"{unipile_base}/chats/{conversation_id}/messages",
                 headers={"X-API-KEY": settings.unipile_api_key},
                 timeout=30,
             )
@@ -88,8 +104,8 @@ async def check_linkedin_replies(conversation_id: str) -> list[dict]:
 
 async def send_email(to: str, subject: str, body: str) -> dict:
     """Send a plain-text email via Resend's HTTP API."""
-    if not settings.resend_api_key:
-        log.warning("RESEND_API_KEY not set — skipping email send.")
+    if not settings.resend_api_key or not settings.resend_from_email:
+        log.warning("Resend credentials not set - skipping email send.")
         return {}
     try:
         async with safe_async_client(allowed_hosts={"api.resend.com"}) as client:

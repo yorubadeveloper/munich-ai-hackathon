@@ -17,7 +17,7 @@ Postgres state. A human approves every outreach before it is sent.
 ## Quick Start (Docker)
 ```bash
 cp .env.example .env
-# Fill all keys — see .env.example for where to get each one
+# DATABASE_URL is prefilled for Docker; add integration keys for full agent runs.
 docker compose up --build
 ```
 
