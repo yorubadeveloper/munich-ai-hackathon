@@ -10,6 +10,7 @@ import {
   ShieldCheck,
 } from '@phosphor-icons/react'
 import Lottie from '@/components/Lottie'
+import signalAnimation from '@/public/signal.json'
 
 const WORDS_1 = ['One', 'cold', 'email']
 const WORDS_2 = ['changed', 'my', 'life.']
@@ -180,7 +181,7 @@ export default function Landing() {
             overflow: 'hidden',
           }}
         >
-          <Lottie src="/signal.json" style={{ width: '78%', height: '78%' }} />
+          <Lottie animationData={signalAnimation} style={{ width: '78%', height: '78%' }} />
           <div
             style={{
               position: 'absolute',
