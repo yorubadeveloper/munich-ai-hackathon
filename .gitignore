@@ -23,7 +23,12 @@ build/
 .env.*.local
 *.env.*
 !.env.example
-.gsd
+# Ignore generated GSD artifacts, keep Markdown planning files.
+.gsd/**
+!.gsd/
+!.gsd/**/
+!.gsd/*.md
+!.gsd/**/*.md
 .bg-shell
 uv.lock
 /frontend/tsconfig.tsbuildinfo
