@@ -12,10 +12,14 @@ from config import settings
 
 log = logging.getLogger(__name__)
 
-client = TavilyClient(api_key=settings.tavily_api_key)
+client = TavilyClient(api_key=settings.tavily_api_key) if settings.tavily_api_key else None
 
 
 async def search(query: str, max_results: int = 5) -> list[dict]:
+    if client is None:
+        log.warning("TAVILY_API_KEY not set - skipping Tavily search.")
+        return []
+
     def _search() -> list[dict]:
         try:
             response = client.search(
