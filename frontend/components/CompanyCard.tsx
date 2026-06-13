@@ -1,5 +1,5 @@
 'use client'
-import { UserCircle } from '@phosphor-icons/react'
+import { UserCircle, LinkedinLogo } from '@phosphor-icons/react'
 import StatusBadge from './StatusBadge'
 
 function FitRing({ score }: { score: number }) {
@@ -125,11 +125,29 @@ export default function CompanyCard({ company }: { company: any }) {
               marginBottom: 8,
               display: 'flex',
               alignItems: 'center',
-              gap: 5,
+              gap: 6,
+              flexWrap: 'wrap',
             }}
           >
             <UserCircle size={14} weight="duotone" color="#78716c" />
-            {company.hiring_manager}
+            <span style={{ color: 'var(--ink)', fontWeight: 600 }}>
+              {company.hiring_manager}
+            </span>
+            {company.hiring_manager_role && (
+              <span style={{ color: 'var(--muted)' }}>· {company.hiring_manager_role}</span>
+            )}
+            {company.hiring_manager_linkedin && (
+              <a
+                href={company.hiring_manager_linkedin}
+                target="_blank"
+                rel="noreferrer"
+                title="View LinkedIn profile"
+                style={{ display: 'inline-flex', alignItems: 'center', color: 'var(--muted)' }}
+                onClick={(e) => e.stopPropagation()}
+              >
+                <LinkedinLogo size={14} weight="fill" />
+              </a>
+            )}
           </div>
         )}
 

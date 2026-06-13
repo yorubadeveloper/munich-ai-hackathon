@@ -55,10 +55,14 @@ async def send(company: Company, db: AsyncSession) -> DeliveryResult:
     if (
         message.channel == "linkedin"
         and research
-        and research.hiring_manager_linkedin
+        and (research.hiring_manager_provider_id or research.hiring_manager_linkedin)
     ):
+        # Prefer Unipile's provider id (reliable for DMs); fall back to URL.
+        recipient = (
+            research.hiring_manager_provider_id or research.hiring_manager_linkedin
+        )
         result = await send_linkedin_dm(
-            recipient_linkedin_url=research.hiring_manager_linkedin,
+            recipient_linkedin_url=recipient,
             message=message.final_body or message.draft_body,
         )
         conversation_id = result.get("chat_id")

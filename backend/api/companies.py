@@ -31,6 +31,8 @@ async def get_companies(db: AsyncSession = Depends(get_db)):
                 "funding_stage": research.funding_stage if research else None,
                 "tech_stack": research.tech_stack if research else [],
                 "hiring_manager": research.hiring_manager_name if research else None,
+                "hiring_manager_role": research.hiring_manager_role if research else None,
+                "hiring_manager_linkedin": research.hiring_manager_linkedin if research else None,
             }
         )
     return out

@@ -1,8 +1,12 @@
 """
 Research Agent.
-Think: what do I need to know about this company to score fit and draft outreach?
-Act: Tavily searches for funding, hiring manager, tech signals, recent news.
-Observe: Gemini synthesises into structured profile + fit score.
+Think: who is the right person to reach out to at this company, and what do I
+       need to know to write a credible intro?
+Act: 1) Find the decision-maker via LinkedIn people-search (Unipile) on behalf of
+        the user's connected account — CTO / VP Eng / Head of Eng / founder.
+     2) Tavily searches for funding, tech signals, recent news.
+Observe: Gemini synthesises company facts; the resolved person (name, role,
+         LinkedIn URL, and Unipile provider id for DMs) is stored on Research.
 """
 from dataclasses import dataclass
 
@@ -11,7 +15,21 @@ from sqlalchemy import select
 
 from models import Company, Research, UserProfile, AgentLog
 from tools.tavily_client import search
-from tools.gemini_client import synthesise_research, score_fit
+from tools.gemini_client import synthesise_research, score_fit, pick_best_contact
+from tools.unipile_client import search_linkedin_people
+
+
+# Decision-maker titles we want to reach, most senior / most relevant first.
+TARGET_TITLES = [
+    "CTO",
+    "VP Engineering",
+    "Head of Engineering",
+    "Founder",
+    "Co-Founder",
+    "Engineering Manager",
+    "Head of Talent",
+    "Technical Recruiter",
+]
 
 
 @dataclass
@@ -25,53 +43,95 @@ class ResearchResult:
     fit_reasoning: str
 
 
+async def _find_decision_maker(company: Company, profile: UserProfile) -> dict:
+    """
+    Use Unipile LinkedIn people-search to find the best person to contact at the
+    company. Returns the chosen contact dict (or {} if none found).
+    """
+    # One focused query: senior eng/leadership titles at this company.
+    role_keywords = "CTO OR VP Engineering OR Head of Engineering OR Founder"
+    candidates = await search_linkedin_people(
+        keywords=role_keywords,
+        company_keyword=company.name,
+        limit=8,
+    )
+    if not candidates:
+        return {}
+
+    # Let Gemini pick the single best person to approach for this candidate.
+    best = await pick_best_contact(company.name, profile.role, candidates)
+    if best:
+        return best
+
+    # Fallback: first candidate whose role looks senior, else the first.
+    for c in candidates:
+        role = (c.get("role") or "").lower()
+        if any(t.lower() in role for t in ["cto", "founder", "vp", "head"]):
+            return c
+    return candidates[0]
+
+
 async def run(company: Company, db: AsyncSession) -> ResearchResult:
     profile_result = await db.execute(select(UserProfile).limit(1))
     profile = profile_result.scalar_one_or_none()
 
-    queries = [
-        f"{company.name} funding round 2024 2025",
-        f"{company.name} CTO engineering hiring manager LinkedIn",
-        f"{company.name} tech stack backend engineering",
-        f"{company.name} news product launch 2025",
-    ]
+    # ── ACT 1: find the person (the whole point — warm/cold intro target) ──
+    contact = await _find_decision_maker(company, profile)
 
+    # ── ACT 2: company facts via web search ──
+    queries = [
+        f"{company.name} funding round",
+        f"{company.name} tech stack engineering blog",
+        f"{company.name} product launch news",
+    ]
     raw_results = []
     for q in queries:
         results = await search(q, max_results=3)
         raw_results.extend(results)
 
-    # OBSERVE: synthesise with Gemini.
+    # OBSERVE: synthesise company facts with Gemini.
     enriched = await synthesise_research(company.name, raw_results)
     fit = await score_fit(enriched, profile)
+
+    # Prefer the LinkedIn-verified contact; fall back to whatever Gemini guessed.
+    hm_name = contact.get("name") or enriched.get("hiring_manager_name")
+    hm_linkedin = contact.get("profile_url") or enriched.get("hiring_manager_linkedin")
+    hm_role = contact.get("role")
+    hm_provider = contact.get("provider_id")
 
     research = Research(
         company_id=company.id,
         funding_stage=enriched.get("funding_stage"),
         headcount_estimate=enriched.get("headcount"),
         tech_stack=enriched.get("tech_stack", []),
-        hiring_manager_name=enriched.get("hiring_manager_name"),
-        hiring_manager_linkedin=enriched.get("hiring_manager_linkedin"),
+        hiring_manager_name=hm_name,
+        hiring_manager_linkedin=hm_linkedin,
         hiring_manager_email=enriched.get("hiring_manager_email"),
+        hiring_manager_role=hm_role,
+        hiring_manager_provider_id=hm_provider,
         recent_news=enriched.get("recent_news"),
         fit_reasoning=fit.get("reasoning"),
     )
     db.add(research)
 
-    entry = AgentLog(
-        agent="research_agent",
-        action=f"enriched {company.name}",
-        detail=f"fit score: {fit.get('score')} · {enriched.get('funding_stage')}",
-        company_id=company.id,
+    person_note = (
+        f"{hm_name} ({hm_role})" if hm_name and hm_role else (hm_name or "no contact found")
     )
-    db.add(entry)
+    db.add(
+        AgentLog(
+            agent="research_agent",
+            action=f"enriched {company.name}",
+            detail=f"fit {fit.get('score')} · {enriched.get('funding_stage')} · contact: {person_note}",
+            company_id=company.id,
+        )
+    )
     await db.commit()
 
     return ResearchResult(
         fit_score=float(fit.get("score", 0) or 0),
         funding_stage=enriched.get("funding_stage", "") or "",
-        hiring_manager_name=enriched.get("hiring_manager_name", "") or "",
-        hiring_manager_linkedin=enriched.get("hiring_manager_linkedin", "") or "",
+        hiring_manager_name=hm_name or "",
+        hiring_manager_linkedin=hm_linkedin or "",
         tech_stack=enriched.get("tech_stack", []) or [],
         recent_news=enriched.get("recent_news", "") or "",
         fit_reasoning=fit.get("reasoning", "") or "",
