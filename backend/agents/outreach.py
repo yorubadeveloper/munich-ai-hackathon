@@ -22,47 +22,65 @@ class OutreachDraft:
 
 
 OUTREACH_PROMPT = """
-You are writing a cold outreach message for {user_name}.
+Write a cold outreach message from {user_name} to a person at a company they want
+to work with. The goal is a reply, not a resume dump.
 
-About {user_name}:
+WHO {user_name} IS:
 {bio}
 
-What {user_name} has built (pick the ONE most relevant to this company and reference it concretely):
+WHAT {user_name} HAS BUILT (use the ONE most relevant to THIS company; if none fit,
+do not force it):
 {projects}
 
-Links you may weave in naturally if relevant: {links}
+Optional links (include AT MOST ONE, only if it genuinely strengthens the message):
+{links}
 
-About the company:
+THE COMPANY:
 - Name: {company_name}
 - What they do: {company_summary}
 - Funding stage: {funding_stage}
-- Recent news: {recent_news}
-- Hiring for: {job_title}
-- Hiring manager: {hiring_manager} (use if known, otherwise address generally)
-- Tech stack: {tech_stack}
+- Recent news / signal: {recent_news}
+- Role they are hiring: {job_title}
+- Person you are writing to: {hiring_manager}{hiring_manager_role}
+- Their tech stack: {tech_stack}
 
-Channel: {channel}
-- If linkedin: max 300 characters, punchy, no fluff
-- If email: max 150 words, include a subject line
+CHANNEL: {channel}
 
-Hard rules — do not break any of these:
-1. Write like a human engineer talking to another engineer
-2. Lead with who {user_name} is and what they build — NOT what they want
-3. Reference exactly ONE specific thing about the company
-4. Reference exactly ONE specific project {user_name} built that is relevant to them
-5. ONE ask only: a 20-minute call
-6. No "I hope this message finds you well"
-7. No "I am very passionate about"
-8. No em dashes
-9. No bullet points in the message body
-10. If a portfolio or GitHub link is genuinely relevant, you may include ONE link
+LINKEDIN DM STRICT BLUEPRINT (MUST BE EXACTLY 3 SENTENCES, MAX 290 CHARACTERS):
+- Sentence 1 (The Hook): "Hi {hiring_manager}, saw {company_name} is building {company_summary}."
+  (Be specific: mention their product niche like AI-agents for machinery CPQ, do NOT say "I came across your company" or "congrats on your funding").
+- Sentence 2 (Your Pitch + Project): "I build {job_title} systems and recently shipped {projects}."
+  (Be concrete: reference a specific project you built from your list that matches their stack, with a real metric if available).
+- Sentence 3 (The Low-Pressure Ask): "Worth a short chat about the role?"
+
+EMAIL STRICT BLUEPRINT (MAX 100 WORDS, SHORT SINGLE PARAGRAPH):
+- Subject: A highly specific, non-spammy subject line mentioning your name, role, and their product focus.
+- Hi {hiring_manager},
+- Sentence 1: Concrete, technical hook about what {company_name} is building (e.g. AI-agents for mechanical sales CPQ).
+- Sentence 2: Introduce {user_name} as a {job_title} and state what relevant production systems/projects you have built (reference your projects list, e.g. SyncStudy).
+- Sentence 3: Connect your work directly to their challenges (e.g. scaling pipelines, multi-tenancy, integrations).
+- Sentence 4: Low-pressure ask for a short call to discuss how your backend/cloud experience could contribute.
+- Thanks, {user_name}
+
+VOICE AND CONTENT RULES (HARD RULES):
+- Sound like a real engineer writing a quick message to a peer, not a generic HR application.
+- Absolutely NO generic praise fluff like "I find your focus truly compelling" or "your work is deeply interesting".
+- Lead with what you BUILD, not what you want.
+- No emojis, no hashtags, no bullet points, no em dashes, no signature in LinkedIn.
+
+BANNED PHRASES:
+- "I hope this message finds you well"
+- "I am very passionate about" / "deeply passionate"
+- "my experience aligns with your focus/mission"
+- "caught my eye" / "reached out"
+- "I'd love to discuss" (too generic)
 
 Return valid JSON only, no markdown, no extra text:
 {{
-  "subject": "...",
-  "body": "...",
+  "subject": "specific subject line (email only, else empty string)",
+  "body": "the message",
   "channel": "linkedin" | "email",
-  "hook_used": "one sentence explaining what specific detail you referenced"
+  "hook_used": "the one specific company detail you referenced"
 }}
 """
 
@@ -76,8 +94,20 @@ async def draft(company: Company, db: AsyncSession) -> OutreachDraft:
     )
     research = research_result.scalar_one_or_none()
 
-    # Choose channel: prefer LinkedIn if hiring manager URL exists.
-    channel = "linkedin" if research and research.hiring_manager_linkedin else "email"
+    # Choose channel:
+    #  - LinkedIn if we can actually DM them (provider id or profile URL)
+    #  - else email if we have a real address for the person
+    #  - else fall back to LinkedIn URL if any, otherwise email (jobs@ fallback)
+    has_linkedin = bool(
+        research and (research.hiring_manager_provider_id or research.hiring_manager_linkedin)
+    )
+    has_email = bool(research and research.hiring_manager_email)
+    if has_linkedin:
+        channel = "linkedin"
+    elif has_email:
+        channel = "email"
+    else:
+        channel = "email"
 
     # Safe fallbacks so a thin/empty research row never crashes the draft.
     raw_text = company.raw_job_text or ""
@@ -100,6 +130,7 @@ async def draft(company: Company, db: AsyncSession) -> OutreachDraft:
         link_parts.append(f"LinkedIn: {profile.linkedin_url}")
     links_text = " | ".join(link_parts) if link_parts else "none"
 
+    hm_role = research.hiring_manager_role if research else None
     prompt = OUTREACH_PROMPT.format(
         user_name=profile.name,
         bio=profile.bio or "",
@@ -111,17 +142,27 @@ async def draft(company: Company, db: AsyncSession) -> OutreachDraft:
         recent_news=(research.recent_news if research else None) or "",
         job_title=profile.role,
         hiring_manager=(research.hiring_manager_name if research else None) or "the team",
+        hiring_manager_role=f" ({hm_role})" if hm_role else "",
         tech_stack=", ".join((research.tech_stack if research else None) or []),
         channel=channel,
     )
 
     result = await draft_outreach_message(prompt)
 
+    # The channel is decided by us (based on which contact we actually have),
+    # not the LLM — it sometimes flips it. Enforce ours.
+    body = result.get("body") or "(draft generation failed — please retry)"
+    if channel == "linkedin" and len(body) > 300:
+        # Keep LinkedIn DMs short; trim at a sentence boundary if possible.
+        trimmed = body[:300]
+        last_dot = trimmed.rfind(".")
+        body = (trimmed[: last_dot + 1] if last_dot > 150 else trimmed).strip()
+
     message = Message(
         company_id=company.id,
-        channel=result.get("channel", channel),
-        subject=result.get("subject"),
-        draft_body=result.get("body") or "(draft generation failed — please retry)",
+        channel=channel,
+        subject=result.get("subject") if channel == "email" else None,
+        draft_body=body,
         status="pending",
     )
     db.add(message)

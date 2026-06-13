@@ -21,6 +21,11 @@ class ProfileIn(BaseModel):
     github_url: str = ""
     portfolio_url: str = ""
     projects: str = ""
+    target_industries: list[str] = []
+    target_funding_stages: list[str] = []
+    company_size: str = ""
+    remote_pref: str = ""
+    seniority: str = ""
 
 
 @router.get("/profile")
@@ -41,6 +46,11 @@ async def get_profile(db: AsyncSession = Depends(get_db)):
         "github_url": profile.github_url,
         "portfolio_url": profile.portfolio_url,
         "projects": profile.projects,
+        "target_industries": profile.target_industries,
+        "target_funding_stages": profile.target_funding_stages,
+        "company_size": profile.company_size,
+        "remote_pref": profile.remote_pref,
+        "seniority": profile.seniority,
     }
 
 
@@ -60,6 +70,11 @@ async def save_profile(data: ProfileIn, db: AsyncSession = Depends(get_db)):
         existing.github_url = data.github_url
         existing.portfolio_url = data.portfolio_url
         existing.projects = data.projects
+        existing.target_industries = data.target_industries
+        existing.target_funding_stages = data.target_funding_stages
+        existing.company_size = data.company_size
+        existing.remote_pref = data.remote_pref
+        existing.seniority = data.seniority
     else:
         profile = UserProfile(**data.model_dump())
         db.add(profile)

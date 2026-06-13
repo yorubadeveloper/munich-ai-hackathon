@@ -7,8 +7,10 @@ import { getProfile, saveProfile } from '@/lib/api'
 type FieldKey =
   | 'name'
   | 'role'
+  | 'seniority'
   | 'stack'
   | 'location'
+  | 'remote_pref'
   | 'dealbreakers'
   | 'bio'
   | 'projects'
@@ -16,13 +18,18 @@ type FieldKey =
   | 'portfolio_url'
   | 'linkedin_url'
   | 'email'
+  | 'target_industries'
+  | 'target_funding_stages'
+  | 'company_size'
 
 export default function SetupPage() {
   const [form, setForm] = useState({
     name: '',
     role: '',
+    seniority: '',
     stack: '',
     location: '',
+    remote_pref: '',
     dealbreakers: '',
     bio: '',
     projects: '',
@@ -30,6 +37,9 @@ export default function SetupPage() {
     portfolio_url: '',
     linkedin_url: '',
     email: '',
+    target_industries: '',
+    target_funding_stages: '',
+    company_size: '',
   })
   const [saved, setSaved] = useState(false)
   const [saving, setSaving] = useState(false)
@@ -40,15 +50,20 @@ export default function SetupPage() {
         setForm({
           name: p.name || '',
           role: p.role || '',
+          seniority: p.seniority || '',
           location: p.location || '',
+          remote_pref: p.remote_pref || '',
           bio: p.bio || '',
           projects: p.projects || '',
           github_url: p.github_url || '',
           portfolio_url: p.portfolio_url || '',
           linkedin_url: p.linkedin_url || '',
           email: p.email || '',
+          company_size: p.company_size || '',
           stack: (p.stack || []).join(', '),
           dealbreakers: (p.dealbreakers || []).join(', '),
+          target_industries: (p.target_industries || []).join(', '),
+          target_funding_stages: (p.target_funding_stages || []).join(', '),
         })
     })
   }, [])
@@ -59,6 +74,11 @@ export default function SetupPage() {
       ...form,
       stack: form.stack.split(',').map((s) => s.trim()).filter(Boolean),
       dealbreakers: form.dealbreakers.split(',').map((s) => s.trim()).filter(Boolean),
+      target_industries: form.target_industries.split(',').map((s) => s.trim()).filter(Boolean),
+      target_funding_stages: form.target_funding_stages
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean),
     })
     setSaving(false)
     setSaved(true)
@@ -162,6 +182,13 @@ export default function SetupPage() {
             {field('Role', 'role', { placeholder: 'Backend Engineer' })}
           </div>
 
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+            {field('Seniority', 'seniority', { placeholder: 'Senior / Mid / Lead' })}
+            {field('Remote preference', 'remote_pref', {
+              placeholder: 'Remote / Hybrid / Onsite',
+            })}
+          </div>
+
           {field('Stack', 'stack', {
             placeholder: 'Python, FastAPI, Postgres',
             hint: 'Comma-separated. The top 3 drive discovery searches.',
@@ -180,6 +207,25 @@ export default function SetupPage() {
             placeholder: 'I build reliable backend systems. Shipped X to N users…',
             hint: 'Lead with what you build. Used as context for outreach.',
           })}
+
+          <div className="hairline" style={{ margin: '4px 0' }} />
+          {sectionTitle('What to target')}
+
+          {field('Target industries', 'target_industries', {
+            placeholder: 'AI, devtools, fintech, climate',
+            hint: 'Comma-separated. The single biggest lever on result quality — be specific.',
+          })}
+
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: 18 }}>
+            {field('Funding stages', 'target_funding_stages', {
+              placeholder: 'Seed, Series A',
+              hint: 'Comma-separated.',
+            })}
+            {field('Company size', 'company_size', {
+              placeholder: '10-200',
+              hint: 'Headcount range you want.',
+            })}
+          </div>
 
           <div className="hairline" style={{ margin: '4px 0' }} />
           {sectionTitle('What you have built')}

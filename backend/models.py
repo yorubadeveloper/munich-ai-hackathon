@@ -24,6 +24,12 @@ class UserProfile(Base):
     github_url: Mapped[str] = mapped_column(String, nullable=True)
     portfolio_url: Mapped[str] = mapped_column(String, nullable=True)
     projects: Mapped[str] = mapped_column(Text, nullable=True)
+    # ── Targeting: what kind of companies/roles to surface ──
+    target_industries: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
+    target_funding_stages: Mapped[list[str]] = mapped_column(ARRAY(String), default=list)
+    company_size: Mapped[str] = mapped_column(String, nullable=True)
+    remote_pref: Mapped[str] = mapped_column(String, nullable=True)
+    seniority: Mapped[str] = mapped_column(String, nullable=True)
 
 
 class Company(Base):
@@ -63,6 +69,8 @@ class Research(Base):
     hiring_manager_name: Mapped[str] = mapped_column(String, nullable=True)
     hiring_manager_linkedin: Mapped[str] = mapped_column(String, nullable=True)
     hiring_manager_email: Mapped[str] = mapped_column(String, nullable=True)
+    hiring_manager_role: Mapped[str] = mapped_column(String, nullable=True)
+    hiring_manager_provider_id: Mapped[str] = mapped_column(String, nullable=True)
     recent_news: Mapped[str] = mapped_column(Text, nullable=True)
     fit_reasoning: Mapped[str] = mapped_column(Text, nullable=True)
     enriched_at: Mapped[datetime] = mapped_column(

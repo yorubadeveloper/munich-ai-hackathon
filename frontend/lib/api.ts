@@ -47,6 +47,41 @@ export async function triggerRun() {
   }
 }
 
+export async function rerunResearch(companyId: string) {
+  try {
+    await fetch(`${BASE}/api/companies/${companyId}/research`, { method: 'POST' })
+  } catch {
+    // swallow — UI polls and will reflect state on next refresh
+  }
+}
+
+export async function deleteCompany(companyId: string) {
+  try {
+    const res = await fetch(`${BASE}/api/companies/${companyId}`, { method: 'DELETE' })
+    return res.json()
+  } catch {
+    return { status: 'error' }
+  }
+}
+
+export async function addCompany(data: {
+  name: string
+  company_url?: string
+  job_url?: string
+  job_description?: string
+}) {
+  try {
+    const res = await fetch(`${BASE}/api/companies/add`, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(data),
+    })
+    return res.json()
+  } catch {
+    return { status: 'error' }
+  }
+}
+
 export async function getProfile() {
   try {
     const res = await fetch(`${BASE}/api/profile`, { cache: 'no-store' })

@@ -53,6 +53,13 @@ async def run_pipeline(company_id: str):
                 # THINK + ACT + OBSERVE
 
                 if status == "discovered":
+                    # Instantly transition to 'researching' so the UI shows active work.
+                    company.status = "researching"
+                    await db.commit()
+                    await log_action(
+                        db, "orchestrator", "starting in-depth research", company_id=company.id
+                    )
+                    
                     result = await research.run(company, db)
                     if result.fit_score < 7.0:
                         company.status = "skipped_low_fit"
@@ -64,11 +71,19 @@ async def run_pipeline(company_id: str):
                             company_id=company.id,
                         )
                         break
+                    # Transition to 'researched' after completing research.
                     company.status = "researched"
                     company.fit_score = result.fit_score
                     await db.commit()
 
                 elif status == "researched":
+                    # Instantly transition to 'drafting' so the UI shows active writing.
+                    company.status = "drafting"
+                    await db.commit()
+                    await log_action(
+                        db, "orchestrator", "drafting outreach message", company_id=company.id
+                    )
+
                     draft = await outreach.draft(company, db)
                     company.status = "draft_ready"
                     await db.commit()
@@ -78,10 +93,25 @@ async def run_pipeline(company_id: str):
                         "draft ready, sending to Telegram",
                         company_id=company.id,
                     )
-                    await send_approval_request(company, draft)
+                    # Fetch research so the approval card can show company context.
+                    from models import Research as _Research
+                    from sqlalchemy import select as _select
+
+                    rr = await db.execute(
+                        _select(_Research).where(_Research.company_id == company.id)
+                    )
+                    research_row = rr.scalar_one_or_none()
+                    await send_approval_request(company, draft, research_row)
                     break  # pause — resume via Telegram callback
 
                 elif status == "approved":
+                    # Instantly transition to 'delivering' so the UI shows active sending.
+                    company.status = "delivering"
+                    await db.commit()
+                    await log_action(
+                        db, "orchestrator", "delivering message", company_id=company.id
+                    )
+
                     result = await delivery.send(company, db)
                     company.status = "sent"
                     await db.commit()

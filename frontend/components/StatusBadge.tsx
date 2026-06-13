@@ -14,10 +14,13 @@ type Conf = { label: string; icon: Icon; strong?: boolean }
 
 const STATUS: Record<string, Conf> = {
   discovered: { label: 'Discovered', icon: MagnifyingGlass },
+  researching: { label: 'Researching…', icon: Brain, strong: true },
   researched: { label: 'Researched', icon: Brain },
+  drafting: { label: 'Drafting…', icon: PenNib, strong: true },
   draft_ready: { label: 'Draft ready', icon: PenNib },
   pending_approval: { label: 'Awaiting you', icon: Hourglass, strong: true },
   approved: { label: 'Approved', icon: CheckCircle },
+  delivering: { label: 'Sending…', icon: PaperPlaneTilt, strong: true },
   sent: { label: 'Sent', icon: PaperPlaneTilt, strong: true },
   replied: { label: 'Replied', icon: ChatCircleDots, strong: true },
   skipped_low_fit: { label: 'Low fit', icon: MinusCircle },

@@ -5,6 +5,7 @@ These send messages with inline keyboards; the callbacks are handled in tg/bot.p
 import logging
 
 from telegram import Bot, InlineKeyboardButton, InlineKeyboardMarkup
+from telegram.constants import ParseMode
 
 from config import settings
 
@@ -20,14 +21,44 @@ async def _send_message(**kwargs):
     await bot.send_message(**kwargs)
 
 
-async def send_approval_request(company, draft):
+def _escape_md(text: str) -> str:
+    """Escape MarkdownV1 special chars so drafts with _ * etc. don't break."""
+    if not text:
+        return ""
+    for ch in ("_", "*", "`", "["):
+        text = text.replace(ch, f"\\{ch}")
+    return text
+
+
+async def send_approval_request(company, draft, research=None):
     score = company.fit_score or 0
+
+    # Company context line.
+    summary = ""
+    contact_line = ""
+    if research is not None:
+        if getattr(research, "recent_news", None):
+            summary = _escape_md(research.recent_news[:220])
+        name = getattr(research, "hiring_manager_name", None)
+        role = getattr(research, "hiring_manager_role", None)
+        if name:
+            contact_line = f"\U0001F464 To: {_escape_md(name)}"
+            if role:
+                contact_line += f" ({_escape_md(role)})"
+            contact_line += "\n"
+
+    channel_label = "LinkedIn DM" if draft.channel == "linkedin" else "Email"
+    subject_line = ""
+    if draft.channel == "email" and getattr(draft, "subject", ""):
+        subject_line = f"*Subject:* {_escape_md(draft.subject)}\n"
+
     text = (
         f"\U0001F3AF *New match ready*\n\n"
-        f"*{company.name}*\n"
-        f"Fit score: {score:.1f}/10\n"
-        f"Channel: {'LinkedIn DM' if draft.channel == 'linkedin' else 'Email'}\n\n"
-        f"*Draft:*\n_{draft.body[:400]}_"
+        f"*{_escape_md(company.name)}*  ·  {score:.1f}/10  ·  {channel_label}\n"
+        f"{contact_line}"
+        + (f"_{summary}_\n" if summary else "")
+        + f"\n{subject_line}"
+        f"*Draft:*\n{_escape_md(draft.body[:700])}"
     )
     keyboard = InlineKeyboardMarkup(
         [
@@ -46,7 +77,7 @@ async def send_approval_request(company, draft):
             chat_id=settings.telegram_chat_id,
             text=text,
             reply_markup=keyboard,
-            parse_mode="Markdown",
+            parse_mode=ParseMode.MARKDOWN,
         )
     except Exception as e:
         log.warning(f"Telegram approval request failed: {e}")
