@@ -22,47 +22,57 @@ class OutreachDraft:
 
 
 OUTREACH_PROMPT = """
-You are writing a cold outreach message for {user_name}.
+Write a cold outreach message from {user_name} to a person at a company they want
+to work with. The goal is a reply, not a resume dump.
 
-About {user_name}:
+WHO {user_name} IS:
 {bio}
 
-What {user_name} has built (pick the ONE most relevant to this company and reference it concretely):
+WHAT {user_name} HAS BUILT (use the ONE most relevant to THIS company; if none fit,
+do not force it):
 {projects}
 
-Links you may weave in naturally if relevant: {links}
+Optional links (include AT MOST ONE, only if it genuinely strengthens the message):
+{links}
 
-About the company:
+THE COMPANY:
 - Name: {company_name}
 - What they do: {company_summary}
 - Funding stage: {funding_stage}
-- Recent news: {recent_news}
-- Hiring for: {job_title}
-- Hiring manager: {hiring_manager} (use if known, otherwise address generally)
-- Tech stack: {tech_stack}
+- Recent news / signal: {recent_news}
+- Role they are hiring: {job_title}
+- Person you are writing to: {hiring_manager}{hiring_manager_role}
+- Their tech stack: {tech_stack}
 
-Channel: {channel}
-- If linkedin: max 300 characters, punchy, no fluff
-- If email: max 150 words, include a subject line
+CHANNEL: {channel}
+- linkedin: 1 to 3 short sentences, under 280 characters total, no greeting fluff,
+  no signature, no links unless essential. Sound like a DM, not a cover letter.
+- email: under 110 words, with a specific subject line. One short paragraph.
 
-Hard rules — do not break any of these:
-1. Write like a human engineer talking to another engineer
-2. Lead with who {user_name} is and what they build — NOT what they want
-3. Reference exactly ONE specific thing about the company
-4. Reference exactly ONE specific project {user_name} built that is relevant to them
-5. ONE ask only: a 20-minute call
-6. No "I hope this message finds you well"
-7. No "I am very passionate about"
-8. No em dashes
-9. No bullet points in the message body
-10. If a portfolio or GitHub link is genuinely relevant, you may include ONE link
+VOICE AND CONTENT RULES:
+- Sound like a real engineer who did 5 minutes of homework, not a recruiter.
+- Open with a concrete, specific hook about THEM (a product detail, the recent
+  signal, something technical) - not "I came across your company".
+- Then one line on what {user_name} actually builds that is relevant. Be concrete.
+- Make the relevance obvious without saying "my experience aligns with your focus".
+- One clear ask: a short call. Keep it low-pressure ("worth a quick chat?").
+- Plain, direct language. Contractions are good.
+
+BANNED (do not write any of these or anything like them):
+- "I hope this message finds you well"
+- "I am very passionate about" / "deeply passionate"
+- "my experience in X aligns with Y" / "aligns with your focus/mission"
+- "I'd love to" used more than once
+- "caught my eye" / "reached out"
+- em dashes, bullet points, hashtags, emojis
+- generic praise with no specific detail
 
 Return valid JSON only, no markdown, no extra text:
 {{
-  "subject": "...",
-  "body": "...",
+  "subject": "specific subject line (email only, else empty string)",
+  "body": "the message",
   "channel": "linkedin" | "email",
-  "hook_used": "one sentence explaining what specific detail you referenced"
+  "hook_used": "the one specific company detail you referenced"
 }}
 """
 
@@ -76,8 +86,20 @@ async def draft(company: Company, db: AsyncSession) -> OutreachDraft:
     )
     research = research_result.scalar_one_or_none()
 
-    # Choose channel: prefer LinkedIn if hiring manager URL exists.
-    channel = "linkedin" if research and research.hiring_manager_linkedin else "email"
+    # Choose channel:
+    #  - LinkedIn if we can actually DM them (provider id or profile URL)
+    #  - else email if we have a real address for the person
+    #  - else fall back to LinkedIn URL if any, otherwise email (jobs@ fallback)
+    has_linkedin = bool(
+        research and (research.hiring_manager_provider_id or research.hiring_manager_linkedin)
+    )
+    has_email = bool(research and research.hiring_manager_email)
+    if has_linkedin:
+        channel = "linkedin"
+    elif has_email:
+        channel = "email"
+    else:
+        channel = "email"
 
     # Safe fallbacks so a thin/empty research row never crashes the draft.
     raw_text = company.raw_job_text or ""
@@ -100,6 +122,7 @@ async def draft(company: Company, db: AsyncSession) -> OutreachDraft:
         link_parts.append(f"LinkedIn: {profile.linkedin_url}")
     links_text = " | ".join(link_parts) if link_parts else "none"
 
+    hm_role = research.hiring_manager_role if research else None
     prompt = OUTREACH_PROMPT.format(
         user_name=profile.name,
         bio=profile.bio or "",
@@ -111,17 +134,27 @@ async def draft(company: Company, db: AsyncSession) -> OutreachDraft:
         recent_news=(research.recent_news if research else None) or "",
         job_title=profile.role,
         hiring_manager=(research.hiring_manager_name if research else None) or "the team",
+        hiring_manager_role=f" ({hm_role})" if hm_role else "",
         tech_stack=", ".join((research.tech_stack if research else None) or []),
         channel=channel,
     )
 
     result = await draft_outreach_message(prompt)
 
+    # The channel is decided by us (based on which contact we actually have),
+    # not the LLM — it sometimes flips it. Enforce ours.
+    body = result.get("body") or "(draft generation failed — please retry)"
+    if channel == "linkedin" and len(body) > 300:
+        # Keep LinkedIn DMs short; trim at a sentence boundary if possible.
+        trimmed = body[:300]
+        last_dot = trimmed.rfind(".")
+        body = (trimmed[: last_dot + 1] if last_dot > 150 else trimmed).strip()
+
     message = Message(
         company_id=company.id,
-        channel=result.get("channel", channel),
-        subject=result.get("subject"),
-        draft_body=result.get("body") or "(draft generation failed — please retry)",
+        channel=channel,
+        subject=result.get("subject") if channel == "email" else None,
+        draft_body=body,
         status="pending",
     )
     db.add(message)

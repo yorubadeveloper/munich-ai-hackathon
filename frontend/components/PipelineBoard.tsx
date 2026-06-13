@@ -9,6 +9,7 @@ import {
   ChatCircleDots,
   Target,
   Play,
+  MinusCircle,
   Icon,
 } from '@phosphor-icons/react'
 import CompanyCard from './CompanyCard'
@@ -16,6 +17,7 @@ import CompanyCard from './CompanyCard'
 const COLUMNS: { key: string; label: string; icon: Icon }[] = [
   { key: 'discovered', label: 'Discovered', icon: MagnifyingGlass },
   { key: 'researched', label: 'Researched', icon: Brain },
+  { key: 'skipped', label: 'Skipped / Low Fit', icon: MinusCircle },
   { key: 'draft_ready', label: 'Draft Ready', icon: PenNib },
   { key: 'pending_approval', label: 'Awaiting Approval', icon: Hourglass },
   { key: 'approved', label: 'Approved', icon: CheckCircle },
@@ -74,16 +76,28 @@ function EmptyState({ onRun, running }: { onRun?: () => void; running?: boolean 
   )
 }
 
+const STATUS_MAP: Record<string, string[]> = {
+  discovered: ['discovered', 'researching'],
+  researched: ['researched', 'drafting'],
+  approved: ['approved', 'delivering'],
+  skipped: ['skipped_low_fit', 'skipped_by_user'],
+}
+
 export default function PipelineBoard({
   companies,
   onRun,
   running,
+  onRefresh,
 }: {
   companies: any[]
   onRun?: () => void
   running?: boolean
+  onRefresh?: () => void
 }) {
-  const byStatus = (status: string) => companies.filter((c) => c.status === status)
+  const byStatus = (columnKey: string) => {
+    const statuses = STATUS_MAP[columnKey] || [columnKey]
+    return companies.filter((c) => statuses.includes(c.status))
+  }
   const active = COLUMNS.filter((col) => byStatus(col.key).length > 0)
 
   return (
@@ -154,7 +168,7 @@ export default function PipelineBoard({
                   }}
                 >
                   {items.map((c) => (
-                    <CompanyCard key={c.id} company={c} />
+                    <CompanyCard key={c.id} company={c} onRerun={onRefresh} />
                   ))}
                 </div>
               </section>

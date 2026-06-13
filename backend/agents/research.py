@@ -8,6 +8,7 @@ Act: 1) Find the decision-maker via LinkedIn people-search (Unipile) on behalf o
 Observe: Gemini synthesises company facts; the resolved person (name, role,
          LinkedIn URL, and Unipile provider id for DMs) is stored on Research.
 """
+import logging
 from dataclasses import dataclass
 
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -17,6 +18,8 @@ from models import Company, Research, UserProfile, AgentLog
 from tools.tavily_client import search
 from tools.gemini_client import synthesise_research, score_fit, pick_best_contact
 from tools.unipile_client import search_linkedin_people
+
+log = logging.getLogger(__name__)
 
 
 # Decision-maker titles we want to reach, most senior / most relevant first.
@@ -50,20 +53,48 @@ async def _find_decision_maker(company: Company, profile: UserProfile) -> dict:
     """
     # One focused query: senior eng/leadership titles at this company.
     role_keywords = "CTO OR VP Engineering OR Head of Engineering OR Founder"
-    candidates = await search_linkedin_people(
+    raw_candidates = await search_linkedin_people(
         keywords=role_keywords,
         company_keyword=company.name,
         limit=8,
     )
-    if not candidates:
+    if not raw_candidates:
         return {}
 
-    # Let Gemini pick the single best person to approach for this candidate.
+    # Strict Company Verification: Only keep candidates who actually work there.
+    # We check if the company name appears in their parsed company, headline, or role.
+    candidates = []
+    co_name_lower = company.name.lower().strip()
+    for c in raw_candidates:
+        cand_co = (c.get("company") or "").lower().strip()
+        cand_hl = (c.get("headline") or "").lower().strip()
+        cand_role = (c.get("role") or "").lower().strip()
+        
+        # Match if the target company name appears as a word/substring in their current
+        # company, headline, or role (e.g. "Atira" in "Atira GmbH" or "Head of Engineering at Atira").
+        if (
+            co_name_lower in cand_co
+            or co_name_lower in cand_hl
+            or f"at {co_name_lower}" in cand_hl
+            or f"at {co_name_lower}" in cand_role
+        ):
+            candidates.append(c)
+        else:
+            log.info(
+                f"Filtered out candidate: {c.get('name')} works at '{c.get('company') or 'unknown'}' "
+                f"(mismatch for target company '{company.name}')"
+            )
+
+    if not candidates:
+        log.warning(f"No verified decision-maker found at '{company.name}' on LinkedIn.")
+        return {}
+
+    # Let Gemini pick the single best person from the VERIFIED list.
     best = await pick_best_contact(company.name, profile.role, candidates)
     if best:
         return best
 
-    # Fallback: first candidate whose role looks senior, else the first.
+    # Fallback: first verified candidate whose role looks senior, else the first.
     for c in candidates:
         role = (c.get("role") or "").lower()
         if any(t.lower() in role for t in ["cto", "founder", "vp", "head"]):
@@ -79,12 +110,25 @@ async def run(company: Company, db: AsyncSession) -> ResearchResult:
     contact = await _find_decision_maker(company, profile)
 
     # ── ACT 2: company facts via web search ──
+    # If the user provided a domain/website (e.g. atira.ai), scope searches to it.
+    site_filter = f"site:{company.website.replace('https://','').replace('http://','').replace('www.','').split('/')[0]}" if company.website else ""
+
     queries = [
-        f"{company.name} funding round",
-        f"{company.name} tech stack engineering blog",
+        f"{company.name} {site_filter} funding round" if site_filter else f"{company.name} funding round",
+        f"{company.name} {site_filter} product about OR mission" if site_filter else f"{company.name} tech stack engineering blog",
         f"{company.name} product launch news",
     ]
     raw_results = []
+
+    # If the user provided a specific Job Posting URL (e.g. Ashby/Greenhouse),
+    # query Tavily specifically for it. Since Tavily uses headless browsers,
+    # it easily bypasses SPA/JS-only blank screens and extracts the full JD!
+    if company.job_url:
+        log.info(f"Targeting specific job URL via Tavily: {company.job_url}")
+        job_results = await search(company.job_url, max_results=1)
+        if job_results:
+            raw_results.extend(job_results)
+
     for q in queries:
         results = await search(q, max_results=3)
         raw_results.extend(results)

@@ -102,11 +102,13 @@ async def search_linkedin_people(
             continue
         positions = it.get("current_positions") or []
         role = positions[0].get("role") if positions else None
+        company_name = positions[0].get("company") if positions else None
         people.append(
             {
                 "name": it.get("name"),
                 "headline": it.get("headline"),
                 "role": role or it.get("headline"),
+                "company": company_name,
                 "profile_url": it.get("public_profile_url") or it.get("profile_url"),
                 "provider_id": it.get("id"),
                 "location": it.get("location"),

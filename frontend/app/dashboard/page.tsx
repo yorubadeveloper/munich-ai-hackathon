@@ -5,6 +5,7 @@ import { Target, Play, User, ArrowLeft } from '@phosphor-icons/react'
 import PipelineBoard from '@/components/PipelineBoard'
 import ActivityFeed from '@/components/ActivityFeed'
 import StatBar from '@/components/StatBar'
+import AddCompany from '@/components/AddCompany'
 import { getCompanies, getLog, triggerRun } from '@/lib/api'
 
 export default function Dashboard() {
@@ -35,12 +36,18 @@ export default function Dashboard() {
   }
 
   return (
-    <div style={{ minHeight: '100vh', display: 'flex', flexDirection: 'column' }}>
+    <div
+      style={{
+        height: '100vh',
+        display: 'flex',
+        flexDirection: 'column',
+        overflow: 'hidden',
+      }}
+    >
       {/* ── Header ── */}
       <header
         style={{
-          position: 'sticky',
-          top: 0,
+          flexShrink: 0,
           zIndex: 20,
           height: 60,
           padding: '0 26px',
@@ -107,6 +114,7 @@ export default function Dashboard() {
             <User size={15} weight="bold" />
             Profile
           </Link>
+          <AddCompany onAdded={refresh} />
           <button onClick={handleRun} disabled={running} className="btn-primary" style={{ padding: '8px 16px', fontSize: 13 }}>
             <Play size={14} weight="fill" />
             {running ? 'Hunting…' : 'Run Hunt'}
@@ -127,19 +135,26 @@ export default function Dashboard() {
           style={{
             padding: '26px 28px 60px',
             overflowY: 'auto',
+            minHeight: 0,
             display: 'flex',
             flexDirection: 'column',
             gap: 22,
           }}
         >
           <StatBar companies={companies} />
-          <PipelineBoard companies={companies} onRun={handleRun} running={running} />
+          <PipelineBoard
+            companies={companies}
+            onRun={handleRun}
+            running={running}
+            onRefresh={refresh}
+          />
         </div>
 
         <aside
           style={{
             borderLeft: '1px solid var(--border)',
             overflowY: 'auto',
+            minHeight: 0,
             padding: '24px 20px 60px',
             background: 'var(--surface)',
           }}

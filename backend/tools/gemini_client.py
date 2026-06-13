@@ -38,12 +38,8 @@ Search results:
 """
 
 FIT_SCORE_PROMPT = """
-Score how well this company fits this candidate's explicit targeting criteria.
-Return valid JSON only:
-{{
-  "score": 8.5,
-  "reasoning": "one sentence explaining the score, citing the criteria that matched or failed"
-}}
+You are a hiring-fit evaluator. Score how well this specific company fits
+this specific candidate's criteria, from 1.0 to 10.0.
 
 Candidate:
 {profile}
@@ -51,13 +47,35 @@ Candidate:
 Company:
 {company}
 
-Scoring rules (be strict, 1-10):
-- Industry / niche match against the candidate's target industries is the most
-  important factor. A company clearly outside the target niche caps at 4.
-- Funding stage outside the candidate's target stages drops the score by 2-3.
-- Company size outside the target range drops the score by 1-2.
-- Tech stack overlap with the candidate's stack raises the score.
-- 7+ means a genuinely strong, on-target fit. Do not be generous.
+Think step by step, then score. Scoring anchors (be decisive and use the FULL range):
+- 9.0-10.0: Excellent. Perfect stack overlap, correct role, and strong target alignment.
+- 7.0-8.9: Strong. Clear reason to talk, good tech-stack and role match.
+- 5.0-6.9: Moderate. Plausible role/stack overlap, but some mismatch or unverified details.
+- 1.0-4.9: Weak/No fit. Mismatch on role, stack, or explicitly listed dealbreakers.
+
+CRITICAL WILDCARD RULES (Do not penalize unspecified preferences):
+- If the candidate's target industries list is EMPTY, "any", or not specified,
+  do NOT penalize the company for its industry. Treat it as a neutral/perfect match.
+- If the candidate's target funding stages is EMPTY, "any", or not specified,
+  do NOT penalize the company for its funding stage. Treat it as a neutral/perfect match.
+- If the candidate's target company size is EMPTY, "any", or not specified,
+  do NOT penalize the company for its size. Treat it as a neutral/perfect match.
+- If any targeting field is unspecified, the score should be driven PURELY by how
+  well the role matches (e.g. Software Engineer) and how well the tech stack
+  overlaps (e.g. Python, Javascript). A great tech-stack + role match with no
+  unspecified targeting limits should score 8.5 to 9.5 easily.
+
+Scoring deductions (only apply if the candidate has EXPLICITLY specified a preference):
+- Only deduct for industry mismatch if the candidate has listed target industries AND the company clearly violates them.
+- Only deduct for funding stage mismatch if the candidate has listed target funding stages AND the company clearly violates them.
+- Only deduct for company size mismatch if the candidate has listed a company size range AND the company clearly violates it.
+- If a listed dealbreaker (e.g. unpaid) is present in the company summary, hard-cap the score at 2.0.
+
+Return valid JSON only, in this exact order (reasoning first, then the number):
+{{
+  "reasoning": "2-3 short clauses citing the specific criteria that matched or failed",
+  "score": <number between 1.0 and 10.0>
+}}
 """
 
 
@@ -72,8 +90,13 @@ Discard (relevant=false) if the result is any of:
 - clearly outside the candidate's target industry, location, or seniority
 - not actually about an open role or a specific company that hires
 
-Keep (relevant=true) only if it points to ONE specific company that plausibly has
-a relevant open role for this candidate.
+Keep (relevant=true) ONLY if BOTH are true:
+1. The result is about ONE specific named company (not a job board, not a list).
+2. You can name that company confidently from the title or content.
+
+If you cannot confidently name a single company, set relevant=false and
+company_name=null. A page titled like "Remote X Developer Jobs", "Top N startups",
+"X jobs in 2026", or any multi-company listing is NOT relevant.
 
 Candidate target:
 {target}
@@ -86,7 +109,7 @@ Result:
 Return valid JSON only:
 {{
   "relevant": true,
-  "company_name": "clean company name if identifiable, else null",
+  "company_name": "the single company's clean name, or null if not identifiable",
   "reason": "short reason"
 }}
 """

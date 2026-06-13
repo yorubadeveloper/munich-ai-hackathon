@@ -40,7 +40,71 @@ AGGREGATOR_DOMAINS = {
     "crunchbase.com",
     "builtin.com",
     "themuse.com",
+    # More job boards / aggregators / listing sites.
+    "remoteok.com",
+    "remoteok.io",
+    "weworkremotely.com",
+    "remote.co",
+    "remotive.com",
+    "remotive.io",
+    "stackoverflow.com",
+    "dice.com",
+    "wellfound.com/jobs",
+    "angellist.com",
+    "lensa.com",
+    "jobspresso.co",
+    "flexjobs.com",
+    "workingnomads.com",
+    "nodesk.co",
+    "authenticjobs.com",
+    "jobgether.com",
+    "himalayas.app",
+    "otta.com",
+    "levels.fyi",
+    "talent.io",
+    "honeypot.io",
+    "arc.dev",
+    "turing.com",
+    "toptal.com",
+    "upwork.com",
+    "freelancer.com",
+    "naukri.com",
+    "totaljobs.com",
+    "reed.co.uk",
+    "stepstone.de",
+    "xing.com",
+    "kununu.com",
+    "joblift.com",
+    "adzuna.com",
+    "jora.com",
+    "snaphunt.com",
+    "wantedly.com",
+    "f6s.com",
 }
+
+# Title/URL patterns that indicate a listing/roundup page, not a single company.
+_LISTING_PATTERNS = [
+    "jobs in",
+    "jobs at",
+    "remote jobs",
+    " jobs ",
+    "job openings",
+    "open positions",
+    "hiring now",
+    "top ",
+    "best ",
+    "10 ",
+    "20 ",
+    "list of",
+    "companies hiring",
+    "who is hiring",
+    "career page",
+    "careers page",
+    "job board",
+    "vacancies",
+    "find jobs",
+    "browse jobs",
+]
 
 
 def _registry_year() -> int:
@@ -107,7 +171,39 @@ def _domain(url: str) -> str:
 
 def _is_aggregator(url: str) -> bool:
     d = _domain(url)
-    return any(d == agg or d.endswith("." + agg) for agg in AGGREGATOR_DOMAINS)
+    if any(d == agg or d.endswith("." + agg) for agg in AGGREGATOR_DOMAINS):
+        return True
+    # Also catch aggregator path fragments (e.g. wellfound.com/jobs/...).
+    low = (url or "").lower()
+    return any(agg in low for agg in AGGREGATOR_DOMAINS if "/" in agg)
+
+
+def _looks_like_listing(title: str, url: str) -> bool:
+    """Heuristic: does the title/URL look like a jobs-listing/roundup page?"""
+    hay = f" {(title or '').lower()} "
+    if any(p in hay for p in _LISTING_PATTERNS):
+        return True
+    # URL slugs like /remote-azure-developer-jobs or /jobs/ are listings.
+    slug = (url or "").lower()
+    if "/jobs/" in slug or slug.rstrip("/").endswith("/jobs") or "-jobs" in slug:
+        return True
+    return False
+
+
+def _looks_like_company_name(name: str) -> bool:
+    """Reject names that are clearly page titles, not companies."""
+    if not name:
+        return False
+    n = name.strip()
+    if len(n) < 2 or len(n) > 60:
+        return False
+    low = f" {n.lower()} "
+    if any(p in low for p in _LISTING_PATTERNS):
+        return False
+    # A real company name is usually short (1-5 words). Listing titles are long.
+    if len(n.split()) > 6:
+        return False
+    return True
 
 
 async def run(db: AsyncSession) -> list[Company]:
@@ -137,6 +233,12 @@ async def run(db: AsyncSession) -> list[Company]:
                 dropped += 1
                 continue
 
+            # Drop listing/roundup pages by title/URL pattern (e.g.
+            # "Remote Azure Developer Jobs in 2026", "/remote-...-jobs").
+            if _looks_like_listing(r.get("title", ""), url):
+                dropped += 1
+                continue
+
             # Dealbreaker check (cheap, before any LLM call).
             raw_text = (r.get("content", "") + " " + r.get("title", "")).lower()
             if any(d.lower() in raw_text for d in (profile.dealbreakers or [])):
@@ -156,16 +258,22 @@ async def run(db: AsyncSession) -> list[Company]:
                 dropped += 1
                 continue
 
-            # Clean company name: prefer the gate's name, then GLiNER, then a
-            # cleaned title (strip trailing " | site" / " - site" noise).
+            # GLiNER2 (Pioneer): deterministic structured extraction from the
+            # raw job text — company, role, stack, stage, manager, salary, remote.
             entities = await extract_job_entities(r.get("content", ""))
-            title = (r.get("title", "") or "").split(" | ")[0].split(" - ")[0]
-            name = (
-                verdict.get("company_name")
-                or entities.get("company_name")
-                or title
-                or "Unknown"
-            )[:80].strip()
+
+            # Determine a REAL company name. We only accept names from the
+            # relevance gate or GLiNER (both look at content), not the page
+            # title. If we can't identify a real company, this is almost
+            # certainly a listing page — drop it instead of inventing one.
+            candidate_name = (verdict.get("company_name") or "").strip() or (
+                entities.get("company_name") or ""
+            ).strip()
+            if not _looks_like_company_name(candidate_name):
+                dropped += 1
+                log.info(f"Dropped (no real company name): {r.get('title','')[:60]}")
+                continue
+            name = candidate_name[:80]
 
             company = Company(
                 name=name,
@@ -181,11 +289,20 @@ async def run(db: AsyncSession) -> list[Company]:
             discovered.append(company)
             kept += 1
 
+            # Surface what GLiNER2 pulled out so the activity feed shows it working.
+            gliner_bits = [
+                f"{k}: {v}"
+                for k, v in entities.items()
+                if k != "company_name" and v
+            ]
+            gliner_note = " · ".join(gliner_bits[:4]) if gliner_bits else None
+            detail = gliner_note or verdict.get("reason") or f"via {_domain(url)}"
+
             db.add(
                 AgentLog(
                     agent="discovery_agent",
                     action=f"found {company.name}",
-                    detail=verdict.get("reason") or f"via {_domain(url)}",
+                    detail=detail,
                     company_id=company.id,
                 )
             )
