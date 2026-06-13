@@ -88,7 +88,8 @@ huntagent/
 > does not shadow the installed `python-telegram-bot` package.
 
 ## Partners
-- Google Gemini 2.0 Flash
+- Google Gemini 2.5 Flash
+- Resend (email)
 - Tavily
 - Pioneer / GLiNER2
 - Aikido (connect repo for security scanning)
