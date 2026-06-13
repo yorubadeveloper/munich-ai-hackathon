@@ -11,7 +11,14 @@ from config import settings
 
 log = logging.getLogger(__name__)
 
-bot = Bot(token=settings.telegram_bot_token)
+bot = Bot(token=settings.telegram_bot_token) if settings.telegram_bot_token else None
+
+
+async def _send_message(**kwargs):
+    if bot is None or not settings.telegram_chat_id:
+        log.warning("Telegram credentials not set - skipping outbound message.")
+        return
+    await bot.send_message(**kwargs)
 
 
 def _escape_md(text: str) -> str:
@@ -66,7 +73,7 @@ async def send_approval_request(company, draft, research=None):
         ]
     )
     try:
-        await bot.send_message(
+        await _send_message(
             chat_id=settings.telegram_chat_id,
             text=text,
             reply_markup=keyboard,
@@ -83,7 +90,7 @@ async def notify_reply(company, reply: dict):
         f"_{reply.get('text', '')[:300]}_"
     )
     try:
-        await bot.send_message(
+        await _send_message(
             chat_id=settings.telegram_chat_id, text=text, parse_mode="Markdown"
         )
     except Exception as e:
@@ -110,7 +117,7 @@ async def send_followup_approval(company, followup_body: str):
         ]
     )
     try:
-        await bot.send_message(
+        await _send_message(
             chat_id=settings.telegram_chat_id,
             text=text,
             reply_markup=keyboard,

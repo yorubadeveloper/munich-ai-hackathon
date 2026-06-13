@@ -38,11 +38,12 @@ services:
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
-      - /app/.next
-    # Reconcile deps with package.json on every start, then run dev.
-    # This keeps the container in sync even if package.json changed.
-    command: sh -c "npm install && npm run dev"
+      - frontend_next:/app/.next
+    # Reconcile deps from the lockfile on every start, then run dev.
+    # `npm ci` avoids rewriting package-lock.json on bind-mounted source.
+    command: sh -c "npm ci --no-audit --no-fund && npm run dev"
 
 volumes:
   pgdata:
   frontend_node_modules:
+  frontend_next:

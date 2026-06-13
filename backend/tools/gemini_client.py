@@ -15,8 +15,10 @@ from config import settings
 
 log = logging.getLogger(__name__)
 
-genai.configure(api_key=settings.gemini_api_key)
-model = genai.GenerativeModel(settings.gemini_model)
+model = None
+if settings.gemini_api_key:
+    genai.configure(api_key=settings.gemini_api_key)
+    model = genai.GenerativeModel(settings.gemini_model)
 
 
 RESEARCH_SYNTHESIS_PROMPT = """
@@ -139,6 +141,10 @@ def _extract_json(text: str) -> dict:
 
 
 async def _generate(prompt: str) -> str:
+    if model is None:
+        log.warning("GEMINI_API_KEY not set - skipping Gemini generation.")
+        return ""
+
     def _call() -> str:
         try:
             response = model.generate_content(prompt)

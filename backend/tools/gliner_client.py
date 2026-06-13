@@ -13,13 +13,14 @@ and the orchestrator falls back to other signals.
 """
 import logging
 
-import httpx
-
 from config import settings
+from tools.safe_http import safe_async_client, validate_https_url
 
 log = logging.getLogger(__name__)
 
-PIONEER_INFERENCE_URL = "https://api.pioneer.ai/inference"
+PIONEER_INFERENCE_URL = validate_https_url(
+    "https://api.pioneer.ai/inference", {"api.pioneer.ai"}
+)
 
 # Circuit breaker: once Pioneer rejects us for auth/billing reasons (401/403),
 # that will not change mid-run, so we stop calling it to avoid log spam and
@@ -112,7 +113,7 @@ async def extract_job_entities(text: str) -> dict:
         return {}
 
     try:
-        async with httpx.AsyncClient() as client:
+        async with safe_async_client(allowed_hosts={"api.pioneer.ai"}) as client:
             response = await client.post(
                 PIONEER_INFERENCE_URL,
                 headers={

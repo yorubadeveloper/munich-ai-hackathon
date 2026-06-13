@@ -22,3 +22,7 @@ build/
 .env.production.local
 .env.*.local
 *.env.*
+!.env.example
+.gsd
+.bg-shell
+uv.lock

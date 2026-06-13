@@ -7,26 +7,64 @@ Email delivery goes through Resend (https://resend.com) over its HTTP API,
 reusing httpx so no extra SDK/SMTP handling is needed.
 """
 import logging
-
-import httpx
+from urllib.parse import urlsplit
 
 from config import settings
+from tools.safe_http import UnsafeOutboundRequestError, safe_async_client, validate_https_url
 
 log = logging.getLogger(__name__)
 
+
 # Unipile assigns each account a region-specific DSN (host:port), e.g.
 # "api49.unipile.com:17948". Set UNIPILE_DSN in .env to match your dashboard.
-_dsn = settings.unipile_dsn.strip().rstrip("/")
-_dsn = _dsn.replace("https://", "").replace("http://", "")
-UNIPILE_BASE = f"https://{_dsn}/api/v1"
-RESEND_ENDPOINT = "https://api.resend.com/emails"
+def _normalize_unipile_dsn(raw_dsn: str) -> tuple[str, str]:
+    dsn = raw_dsn.strip().rstrip("/")
+    if not dsn:
+        raise UnsafeOutboundRequestError("UNIPILE_DSN is required")
+
+    candidate = dsn if "://" in dsn else f"https://{dsn}"
+    parsed = urlsplit(candidate)
+    if parsed.scheme != "https":
+        raise UnsafeOutboundRequestError("UNIPILE_DSN must use https")
+    if parsed.username or parsed.password:
+        raise UnsafeOutboundRequestError("UNIPILE_DSN must not include credentials")
+    if parsed.path not in ("", "/") or parsed.query or parsed.fragment:
+        raise UnsafeOutboundRequestError("UNIPILE_DSN must be a host[:port] value")
+
+    host = (parsed.hostname or "").rstrip(".").lower()
+    if host != "unipile.com" and not host.endswith(".unipile.com"):
+        raise UnsafeOutboundRequestError("UNIPILE_DSN must point to a unipile.com host")
+
+    try:
+        port = parsed.port
+    except ValueError as exc:
+        raise UnsafeOutboundRequestError("UNIPILE_DSN has an invalid port") from exc
+
+    netloc = host if port is None else f"{host}:{port}"
+    return netloc, host
+
+
+RESEND_ENDPOINT = validate_https_url("https://api.resend.com/emails", {"api.resend.com"})
+
+
+def _unipile_config() -> tuple[str, str] | None:
+    if not settings.unipile_dsn or not settings.unipile_api_key:
+        log.warning("Unipile credentials not set - skipping Unipile request.")
+        return None
+    netloc, host = _normalize_unipile_dsn(settings.unipile_dsn)
+    return f"https://{netloc}/api/v1", host
 
 
 async def send_linkedin_dm(recipient_linkedin_url: str, message: str) -> dict:
+    config = _unipile_config()
+    if config is None or not settings.unipile_account_id:
+        log.warning("Unipile account id not set - skipping LinkedIn DM.")
+        return {}
+    unipile_base, unipile_host = config
     try:
-        async with httpx.AsyncClient() as client:
+        async with safe_async_client(allowed_hosts={unipile_host}) as client:
             response = await client.post(
-                f"{UNIPILE_BASE}/messages",
+                f"{unipile_base}/messages",
                 headers={
                     "X-API-KEY": settings.unipile_api_key,
                     "accept": "application/json",
@@ -118,10 +156,14 @@ async def search_linkedin_people(
 
 
 async def check_linkedin_replies(conversation_id: str) -> list[dict]:
+    config = _unipile_config()
+    if config is None:
+        return []
+    unipile_base, unipile_host = config
     try:
-        async with httpx.AsyncClient() as client:
+        async with safe_async_client(allowed_hosts={unipile_host}) as client:
             response = await client.get(
-                f"{UNIPILE_BASE}/chats/{conversation_id}/messages",
+                f"{unipile_base}/chats/{conversation_id}/messages",
                 headers={"X-API-KEY": settings.unipile_api_key},
                 timeout=30,
             )
@@ -134,11 +176,11 @@ async def check_linkedin_replies(conversation_id: str) -> list[dict]:
 
 async def send_email(to: str, subject: str, body: str) -> dict:
     """Send a plain-text email via Resend's HTTP API."""
-    if not settings.resend_api_key:
-        log.warning("RESEND_API_KEY not set — skipping email send.")
+    if not settings.resend_api_key or not settings.resend_from_email:
+        log.warning("Resend credentials not set - skipping email send.")
         return {}
     try:
-        async with httpx.AsyncClient() as client:
+        async with safe_async_client(allowed_hosts={"api.resend.com"}) as client:
             response = await client.post(
                 RESEND_ENDPOINT,
                 headers={
