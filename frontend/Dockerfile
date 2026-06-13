@@ -9,6 +9,7 @@ COPY --chown=node:node package*.json ./
 RUN npm ci --no-audit --no-fund
 
 COPY --chown=node:node . .
+RUN mkdir -p .next
 
 EXPOSE 3000
 

@@ -38,7 +38,7 @@ services:
     volumes:
       - ./frontend:/app
       - frontend_node_modules:/app/node_modules
-      - /app/.next
+      - frontend_next:/app/.next
     # Reconcile deps from the lockfile on every start, then run dev.
     # `npm ci` avoids rewriting package-lock.json on bind-mounted source.
     command: sh -c "npm ci --no-audit --no-fund && npm run dev"
@@ -46,3 +46,4 @@ services:
 volumes:
   pgdata:
   frontend_node_modules:
+  frontend_next:
