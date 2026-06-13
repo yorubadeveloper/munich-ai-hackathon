@@ -4,6 +4,7 @@ The backend only needs to call known SaaS APIs. Keep outbound request targets
 allow-listed to prevent SSRF if user-controlled data reaches request inputs.
 """
 import re
+import socket
 from collections.abc import AsyncIterator, Iterable
 from contextlib import asynccontextmanager
 from ipaddress import ip_address
@@ -83,6 +84,35 @@ def _validate_public_domain(host: str) -> None:
         raise UnsafeOutboundRequestError("Public web URL host is invalid")
 
 
+def _resolved_addresses(host: str) -> frozenset[str]:
+    try:
+        records = socket.getaddrinfo(host, 443, type=socket.SOCK_STREAM)
+    except socket.gaierror as exc:
+        raise UnsafeOutboundRequestError("Public web URL host could not be resolved") from exc
+
+    addresses = frozenset(record[4][0] for record in records)
+    if not addresses:
+        raise UnsafeOutboundRequestError("Public web URL host could not be resolved")
+    return addresses
+
+
+def _validate_public_resolution(host: str) -> None:
+    for address in _resolved_addresses(host):
+        parsed = ip_address(address)
+        if (
+            not parsed.is_global
+            or parsed.is_loopback
+            or parsed.is_link_local
+            or parsed.is_multicast
+            or parsed.is_private
+            or parsed.is_reserved
+            or parsed.is_unspecified
+        ):
+            raise UnsafeOutboundRequestError(
+                "Public web URL host resolves to a non-public address"
+            )
+
+
 def validate_public_https_url(url: str) -> str:
     """Validate a user-provided public web URL before using it in lookups.
 
@@ -106,6 +136,7 @@ def validate_public_https_url(url: str) -> str:
         raise UnsafeOutboundRequestError("Public web URLs must use the default https port")
 
     _validate_public_domain(host)
+    _validate_public_resolution(host)
     netloc = host if port is None else f"{host}:{port}"
     return urlunsplit(("https", netloc, parsed.path, parsed.query, parsed.fragment))
 
@@ -126,12 +157,33 @@ def public_https_url_host(url: str) -> str:
     return _normalize_host(parsed.hostname)
 
 
+class SafeAsyncClient:
+    """Small wrapper that validates concrete URLs before every HTTP request."""
+
+    def __init__(
+        self,
+        client: httpx.AsyncClient,
+        allowed_hosts: Iterable[str],
+    ) -> None:
+        self._client = client
+        self._allowed_hosts = _normalize_allowed_hosts(allowed_hosts)
+
+    def _safe_url(self, url: str) -> str:
+        return validate_https_url(str(url), self._allowed_hosts)
+
+    async def get(self, url: str, **kwargs) -> httpx.Response:
+        return await self._client.get(self._safe_url(url), **kwargs)
+
+    async def post(self, url: str, **kwargs) -> httpx.Response:
+        return await self._client.post(self._safe_url(url), **kwargs)
+
+
 @asynccontextmanager
 async def safe_async_client(
     *,
     allowed_hosts: Iterable[str],
     timeout: float = 30,
-) -> AsyncIterator[httpx.AsyncClient]:
+) -> AsyncIterator[SafeAsyncClient]:
     """Create an AsyncClient that rejects requests outside allowed HTTPS hosts.
 
     Redirect following is disabled so a trusted endpoint cannot bounce the server
@@ -154,4 +206,4 @@ async def safe_async_client(
         timeout=timeout,
         trust_env=False,
     ) as client:
-        yield client
+        yield SafeAsyncClient(client, normalized_allowed_hosts)
