@@ -9,8 +9,11 @@ COPY --chown=node:node package*.json ./
 RUN npm ci --no-audit --no-fund
 
 COPY --chown=node:node . .
-RUN mkdir -p .next
+
+# Compile optimized production Next.js build.
+RUN npm run build
 
 EXPOSE 3000
 
-CMD ["npm", "run", "dev"]
+# Start on the port Google Cloud Run injects into $PORT, falling back to 3000.
+CMD ["sh", "-c", "npx next start -p ${PORT:-3000}"]
