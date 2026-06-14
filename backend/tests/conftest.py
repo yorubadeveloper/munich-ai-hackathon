@@ -8,6 +8,12 @@ from tests.fixtures.evidence import (
     telegram_evidence,
 )
 
+pytest_plugins = [
+    "pytest_mock",
+    "anyio.pytest_plugin",
+    "pytest_asyncio.plugin",
+]
+
 __all__ = [
     "company_uuid",
     "fal_evidence",

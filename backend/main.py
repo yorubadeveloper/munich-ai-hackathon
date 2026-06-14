@@ -6,7 +6,7 @@ from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
 from agents.followup import schedule_followup_checks
-from api import companies, log, profile, run
+from api import companies, dossier, log, profile, run
 from database import init_db
 from tg.bot import start_bot
 
@@ -79,6 +79,7 @@ app.add_middleware(
 )
 
 app.include_router(companies.router, prefix="/api")
+app.include_router(dossier.router, prefix="/api")
 app.include_router(profile.router, prefix="/api")
 app.include_router(run.router, prefix="/api")
 app.include_router(log.router, prefix="/api")
