@@ -71,6 +71,15 @@ async def run_pipeline(company_id: str):
                     company.fit_score = result.fit_score
                     await db.commit()
 
+                    # Trigger non-blocking fal visual generation
+                    asyncio.create_task(
+                        _trigger_fal_generation(
+                            company.id,
+                            company.name,
+                            result.recent_news or "",
+                        )
+                    )
+
                 elif status == "researched":
                     # Instantly transition to 'drafting' so the UI shows active writing.
                     company.status = "drafting"
@@ -140,3 +149,48 @@ async def run_discovery():
     # Spawn pipelines outside the discovery session so each runs independently.
     for company in companies:
         asyncio.create_task(run_pipeline(str(company.id)))
+
+
+async def _trigger_fal_generation(company_id, company_name: str, recent_news: str):
+    """
+    Generate fal visual and save it as an EvidenceEvent.
+    Runs asynchronously, completely isolated to prevent pipeline blocking.
+    """
+    from models import EvidenceEvent
+    from tools import fal_client
+
+    try:
+        res = await fal_client.generate_visual(company_name, recent_news)
+        if res:
+            event = EvidenceEvent(
+                company_id=company_id,
+                resource_name="fal",
+                artifact_type="visual_artifact",
+                payload=res,
+                status="success",
+            )
+        else:
+            event = EvidenceEvent(
+                company_id=company_id,
+                resource_name="fal",
+                artifact_type="visual_artifact",
+                payload={},
+                status="error",
+                error_context={"reason": "fal_client returned None"},
+            )
+    except Exception as err:
+        event = EvidenceEvent(
+            company_id=company_id,
+            resource_name="fal",
+            artifact_type="visual_artifact",
+            payload={},
+            status="error",
+            error_context={"reason": str(err)},
+        )
+
+    try:
+        async with AsyncSessionLocal() as db:
+            db.add(event)
+            await db.commit()
+    except Exception as db_err:
+        log.error(f"Failed to save fal EvidenceEvent to database: {db_err}")

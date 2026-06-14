@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     telegram_chat_id: str = ""
     pioneer_api_key: str = ""
     pioneer_model_id: str = ""
+    fal_key: str = ""
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/huntagent"
     sync_database_url: str = ""
 
