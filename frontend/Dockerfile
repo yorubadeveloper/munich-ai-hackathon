@@ -6,7 +6,7 @@ RUN chown node:node /app
 USER node
 
 COPY --chown=node:node package*.json ./
-RUN npm ci --no-audit --no-fund
+RUN npm install --no-audit --no-fund
 
 COPY --chown=node:node . .
 
