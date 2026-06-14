@@ -21,6 +21,7 @@ async def test_get_dossier_success(
     pioneer_evidence,
     gemini_evidence,
     telegram_evidence,
+    fal_evidence,
     partial_failure_evidence,
 ):
     from httpx import ASGITransport
@@ -53,7 +54,14 @@ async def test_get_dossier_success(
 
     # Mock Evidence Events
     mock_events = []
-    for ev in [tavily_evidence, pioneer_evidence, gemini_evidence, telegram_evidence, partial_failure_evidence]:
+    for ev in [
+        tavily_evidence,
+        pioneer_evidence,
+        gemini_evidence,
+        telegram_evidence,
+        fal_evidence,
+        partial_failure_evidence,
+    ]:
         event_model = EvidenceEvent(
             id=ev.id,
             company_id=ev.company_id,
@@ -106,10 +114,107 @@ async def test_get_dossier_success(
         resources = [e["resource_name"] for e in data["evidence_events"]]
         assert "Tavily" in resources
         assert "Pioneer" in resources
+        assert any(
+            e["resource_name"] == "fal" and e["artifact_type"] == "visual_artifact" for e in data["evidence_events"]
+        )
 
         failures = [e for e in data["evidence_events"] if e["status"] == "error"]
         assert len(failures) == 1
         assert failures[0]["error_context"]["code"] == "timeout"
+    finally:
+        app_with_routes.dependency_overrides.clear()
+
+
+@pytest.mark.anyio
+async def test_get_dossier_partial_failures_only(
+    app_with_routes: FastAPI,
+    mocker,
+    company_uuid,
+    partial_failure_evidence,
+):
+    from httpx import ASGITransport
+
+    from database import get_db
+
+    # Mock DB Session
+    mock_db = mocker.AsyncMock()
+
+    from datetime import datetime
+
+    # Mock Company
+    mock_company = Company(
+        id=company_uuid,
+        name="Test Company",
+        website="https://test.example.com",
+        status="approved",
+        fit_score=0.85,
+        discovered_at=datetime.utcnow(),
+    )
+    mock_db.get.return_value = mock_company
+
+    # Mock Research
+    mock_research = Research(
+        company_id=company_uuid,
+        funding_stage="Series B",
+        tech_stack=["Python", "React", "PostgreSQL"],
+        fit_reasoning="Strong match due to overlapping tech stack and stage.",
+    )
+
+    # Mock Evidence Events
+    event_model = EvidenceEvent(
+        id=partial_failure_evidence.id,
+        company_id=partial_failure_evidence.company_id,
+        resource_name=partial_failure_evidence.resource_name,
+        artifact_type=partial_failure_evidence.artifact_type,
+        payload=partial_failure_evidence.payload,
+        status=partial_failure_evidence.status,
+        error_context=partial_failure_evidence.error_context,
+        timestamp=partial_failure_evidence.timestamp,
+    )
+    mock_events = [event_model]
+
+    # Mock Message
+    mock_message = Message(
+        company_id=company_uuid, channel="email", draft_body="Hey! Saw your startup...", status="approved"
+    )
+
+    async def mock_execute(query):
+        mock_result = mocker.MagicMock()
+        query_str = str(query).lower()
+        if "research" in query_str:
+            mock_result.scalar_one_or_none.return_value = mock_research
+        elif "evidence_events" in query_str:
+            mock_result.scalars().all.return_value = mock_events
+        elif "messages" in query_str:
+            mock_result.scalar_one_or_none.return_value = mock_message
+        return mock_result
+
+    mock_db.execute = mock_execute
+
+    async def override_get_db():
+        yield mock_db
+
+    app_with_routes.dependency_overrides[get_db] = override_get_db
+
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app_with_routes), base_url="http://test/") as client:
+            response = await client.get(f"/api/companies/{company_uuid}/dossier")
+
+        assert response.status_code == 200
+        data = response.json()
+
+        assert data["id"] == str(company_uuid)
+        assert data["name"] == "Test Company"
+
+        # Evidence events should only contain the partial failure
+        events = data["evidence_events"]
+        assert len(events) == 1
+        assert events[0]["status"] == "error"
+        assert events[0]["error_context"]["code"] == "timeout"
+
+        # Verify no success events are present
+        successes = [e for e in events if e["status"] == "success"]
+        assert len(successes) == 0
     finally:
         app_with_routes.dependency_overrides.clear()
 
