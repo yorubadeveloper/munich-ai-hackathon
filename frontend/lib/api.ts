@@ -1,5 +1,42 @@
 const BASE = process.env.NEXT_PUBLIC_API_URL || 'http://localhost:8000'
 
+export type EvidenceEvent = {
+  id: string
+  company_id: string
+  resource_name: string
+  artifact_type: string
+  payload: Record<string, unknown>
+  status: string
+  error_context?: Record<string, unknown> | null
+  timestamp: string
+}
+
+export type ApprovalState = {
+  status: string
+  comment?: string | null
+  updated_at?: string | null
+}
+
+export type CompanyDossier = {
+  id: string
+  name: string
+  website?: string | null
+  job_url?: string | null
+  status: string
+  fit_score?: number | null
+  discovered_at: string
+  funding_stage?: string | null
+  tech_stack: string[]
+  hiring_manager?: string | null
+  hiring_manager_role?: string | null
+  hiring_manager_linkedin?: string | null
+  recent_news?: string | null
+  fit_reasoning?: string | null
+  evidence_events: EvidenceEvent[]
+  outreach_hook?: string | null
+  approval_state: ApprovalState
+}
+
 export type Company = {
   id: string
   name: string
@@ -82,6 +119,16 @@ function normalizeRows<T extends TimestampedRow>(data: unknown): T[] {
   return Array.isArray(data)
     ? data.filter(isRecord).map((row) => normalizeTimestamps(row as T))
     : []
+}
+
+export async function getCompanyDossier(id: string): Promise<CompanyDossier | null> {
+  try {
+    const res = await fetch(`${BASE}/api/companies/${id}/dossier`, { cache: 'no-store' })
+    if (!res.ok) return null
+    return res.json()
+  } catch {
+    return null
+  }
 }
 
 export async function getCompanies(): Promise<Company[]> {

@@ -1,9 +1,10 @@
 'use client'
 import { useState } from 'react'
-import { UserCircle, LinkedinLogo, ArrowClockwise, CircleNotch, Trash } from '@phosphor-icons/react'
+import { UserCircle, LinkedinLogo, ArrowClockwise, CircleNotch, Trash, ArrowRight } from '@phosphor-icons/react'
 import StatusBadge from './StatusBadge'
 import { rerunResearch, deleteCompany } from '@/lib/api'
 import type { Company } from '@/lib/api'
+import Link from 'next/link'
 
 function FitRing({ score }: { score: number }) {
   const pct = Math.max(0, Math.min(100, (score / 10) * 100))
@@ -240,6 +241,28 @@ export default function CompanyCard({
         )}
 
         <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Link
+            href={`/companies/${company.id}`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'transparent',
+              border: '1px solid var(--border)',
+              borderRadius: 8,
+              padding: '5px 11px',
+              fontSize: 12,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              textDecoration: 'none',
+              cursor: 'pointer',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            Dossier
+            <ArrowRight size={13} weight="bold" />
+          </Link>
+
           {confirmDelete ? (
             <div
               style={{
