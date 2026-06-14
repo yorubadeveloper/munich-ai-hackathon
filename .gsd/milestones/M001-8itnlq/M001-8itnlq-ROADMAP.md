@@ -15,7 +15,7 @@
 - [x] **S01: Evidence Trail Backbone** `risk:high` `depends:[]`
   > After this: A company can expose structured resource/evidence events for sources, entities, reasoning, and draft hooks through backend data structures or persistence.
 
-- [ ] **S02: Dossier API Contract** `risk:high` `depends:[S01]`
+- [x] **S02: Dossier API Contract** `risk:high` `depends:[S01]`
   > After this: The dashboard can request a typed company dossier containing evidence, resource labels, fit reasoning, outreach hook, approval state, and partial-failure data.
 
 - [ ] **S03: Dashboard Company Dossier** `risk:medium` `depends:[S02]`
