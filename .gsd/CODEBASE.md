@@ -1,7 +1,7 @@
 # Codebase Map
 
-Generated: 2026-06-14T14:54:44Z | Files: 77 | Described: 0/77
-<!-- gsd:codebase-meta {"generatedAt":"2026-06-14T14:54:44Z","fingerprint":"efe286f1d0b6bab789aadba97b5ddd5bd79f7cc1","fileCount":77,"truncated":false} -->
+Generated: 2026-06-14T21:38:52Z | Files: 79 | Described: 0/79
+<!-- gsd:codebase-meta {"generatedAt":"2026-06-14T21:38:52Z","fingerprint":"51068fdfcdcbcc0f4ad9a4fa555eb982f402fb19","fileCount":79,"truncated":false} -->
 
 ### (root)/
 - `.env.example`
@@ -57,6 +57,7 @@ Generated: 2026-06-14T14:54:44Z | Files: 77 | Described: 0/77
 - `backend/tests/conftest.py`
 - `backend/tests/test_dossier.py`
 - `backend/tests/test_evidence.py`
+- `backend/tests/test_fal_client.py`
 - `backend/tests/test_safe_http.py`
 - `backend/tests/test_tavily_client.py`
 
@@ -69,6 +70,7 @@ Generated: 2026-06-14T14:54:44Z | Files: 77 | Described: 0/77
 
 ### backend/tools/
 - `backend/tools/__init__.py`
+- `backend/tools/fal_client.py`
 - `backend/tools/gemini_client.py`
 - `backend/tools/gliner_client.py`
 - `backend/tools/safe_http.py`

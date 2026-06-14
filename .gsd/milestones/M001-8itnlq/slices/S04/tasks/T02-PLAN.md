@@ -4,7 +4,7 @@ estimated_files: 4
 skills_used: []
 ---
 
-# T02: Create circuit-broken fal client and wire into research pipeline
+# T02: Implemented circuit-broken fal.ai client and integrated async visual artifact generation into company research
 
 Why: The hackathon requires a creative fal.ai integration. It must be non-blocking — missing credentials or API failures must never crash the pipeline.
 

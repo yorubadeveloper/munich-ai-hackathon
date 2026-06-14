@@ -1,9 +1,11 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Target, Buildings } from '@phosphor-icons/react/dist/ssr'
+import { ArrowLeft, Target, Buildings } from '@phosphor-icons/react'
 import StatusBadge from '@/components/StatusBadge'
 import { getCompanyDossier } from '@/lib/api'
 import ResourceChart from '@/components/ResourceChart'
+import ApprovalActions from '@/components/ApprovalActions'
+import OptionalVisualDossier from '@/components/OptionalVisualDossier'
 
 type PageProps = {
   params: { id: string }
@@ -219,8 +221,12 @@ export default async function CompanyDossierPage({ params }: PageProps) {
                         Updated: {new Date(dossier.approval_state.updated_at).toLocaleString()}
                       </div>
                     )}
+                    <ApprovalActions companyId={dossier.id} approvalState={dossier.approval_state} />
                   </div>
                </section>
+
+               {/* Optional Visual Dossier Section */}
+               <OptionalVisualDossier events={dossier.evidence_events} />
 
                {/* Placeholders for visual charts */}
                <section>

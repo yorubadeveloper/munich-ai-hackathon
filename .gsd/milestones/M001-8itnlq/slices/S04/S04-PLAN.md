@@ -32,7 +32,7 @@ Upstream: S03 dossier UI (frontend/app/companies/[id]/page.tsx), S02 dossier API
   - Files: `backend/api/dossier.py`, `backend/tools/telegram_client.py`, `backend/schemas/dossier.py`, `backend/main.py`
   - Verify: cd backend && uv run ruff check backend/api/dossier.py backend/tools/telegram_client.py backend/schemas/dossier.py
 
-- [ ] **T02: Create circuit-broken fal client and wire into research pipeline** `est:45m`
+- [x] **T02: Implemented circuit-broken fal.ai client and integrated async visual artifact generation into company research** `est:45m`
   Why: The hackathon requires a creative fal.ai integration. It must be non-blocking — missing credentials or API failures must never crash the pipeline.
   - Files: `backend/tools/fal_client.py`, `backend/config.py`, `backend/pyproject.toml`, `backend/agents/orchestrator.py`
   - Verify: cd backend && uv run ruff check backend/tools/fal_client.py backend/config.py backend/agents/orchestrator.py
