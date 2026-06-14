@@ -29,11 +29,7 @@ async def resume_stuck_pipelines():
     logger.info("Checking for orphaned/stuck pipelines on startup...")
 
     async with AsyncSessionLocal() as db:
-        res = await db.execute(
-            select(Company).where(
-                Company.status.in_(["researching", "drafting", "delivering"])
-            )
-        )
+        res = await db.execute(select(Company).where(Company.status.in_(["researching", "drafting", "delivering"])))
         stuck_companies = res.scalars().all()
         if not stuck_companies:
             logger.info("No stuck pipelines found. All clean.")
@@ -48,7 +44,7 @@ async def resume_stuck_pipelines():
                 c.status = "researched"
             elif c.status == "delivering":
                 c.status = "approved"
-            
+
             logger.info(f"Resetting '{c.name}': {old_status} -> {c.status}")
             await db.commit()
             asyncio.create_task(run_pipeline(str(c.id)))

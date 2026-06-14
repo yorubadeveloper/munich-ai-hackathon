@@ -10,15 +10,11 @@ router = APIRouter()
 
 @router.get("/companies")
 async def get_companies(db: AsyncSession = Depends(get_db)):
-    result = await db.execute(
-        select(Company).order_by(Company.discovered_at.desc())
-    )
+    result = await db.execute(select(Company).order_by(Company.discovered_at.desc()))
     companies = result.scalars().all()
     out = []
     for c in companies:
-        research_result = await db.execute(
-            select(Research).where(Research.company_id == c.id)
-        )
+        research_result = await db.execute(select(Research).where(Research.company_id == c.id))
         research = research_result.scalar_one_or_none()
         out.append(
             {

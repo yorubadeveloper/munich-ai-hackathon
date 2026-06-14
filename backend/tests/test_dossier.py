@@ -8,10 +8,21 @@ from models import Company, EvidenceEvent, Message, Research
 @pytest.fixture
 def app_with_routes():
     from main import app
+
     return app
 
+
 @pytest.mark.anyio
-async def test_get_dossier_success(app_with_routes: FastAPI, mocker, company_uuid, tavily_evidence, pioneer_evidence, gemini_evidence, telegram_evidence, partial_failure_evidence):
+async def test_get_dossier_success(
+    app_with_routes: FastAPI,
+    mocker,
+    company_uuid,
+    tavily_evidence,
+    pioneer_evidence,
+    gemini_evidence,
+    telegram_evidence,
+    partial_failure_evidence,
+):
     from httpx import ASGITransport
 
     from database import get_db
@@ -28,7 +39,7 @@ async def test_get_dossier_success(app_with_routes: FastAPI, mocker, company_uui
         website="https://test.example.com",
         status="approved",
         fit_score=0.85,
-        discovered_at=datetime.utcnow()
+        discovered_at=datetime.utcnow(),
     )
     mock_db.get.return_value = mock_company
 
@@ -37,7 +48,7 @@ async def test_get_dossier_success(app_with_routes: FastAPI, mocker, company_uui
         company_id=company_uuid,
         funding_stage="Series B",
         tech_stack=["Python", "React", "PostgreSQL"],
-        fit_reasoning="Strong match due to overlapping tech stack and stage."
+        fit_reasoning="Strong match due to overlapping tech stack and stage.",
     )
 
     # Mock Evidence Events
@@ -51,16 +62,13 @@ async def test_get_dossier_success(app_with_routes: FastAPI, mocker, company_uui
             payload=ev.payload,
             status=ev.status,
             error_context=ev.error_context,
-            timestamp=ev.timestamp
+            timestamp=ev.timestamp,
         )
         mock_events.append(event_model)
 
     # Mock Message
     mock_message = Message(
-        company_id=company_uuid,
-        channel="email",
-        draft_body="Hey! Saw your startup...",
-        status="approved"
+        company_id=company_uuid, channel="email", draft_body="Hey! Saw your startup...", status="approved"
     )
 
     async def mock_execute(query):
@@ -105,6 +113,7 @@ async def test_get_dossier_success(app_with_routes: FastAPI, mocker, company_uui
     finally:
         app_with_routes.dependency_overrides.clear()
 
+
 @pytest.mark.anyio
 async def test_get_dossier_not_found(app_with_routes: FastAPI, mocker):
     import uuid
@@ -126,6 +135,167 @@ async def test_get_dossier_not_found(app_with_routes: FastAPI, mocker):
     try:
         async with AsyncClient(transport=ASGITransport(app=app_with_routes), base_url="http://test/") as client:
             response = await client.get(f"/api/companies/{random_id}/dossier")
+
+        assert response.status_code == 404
+    finally:
+        app_with_routes.dependency_overrides.clear()
+
+
+@pytest.mark.anyio
+async def test_approve_company_success(app_with_routes: FastAPI, mocker, company_uuid):
+    from httpx import ASGITransport
+
+    from database import get_db
+
+    # Mock database session
+    mock_db = mocker.AsyncMock()
+    mock_company = Company(
+        id=company_uuid, name="Approve Test Corp", website="https://approve.example.com", status="discovered"
+    )
+    mock_db.get.return_value = mock_company
+
+    # Mock Message query
+    mock_msg = Message(id=company_uuid, company_id=company_uuid, status="pending")
+    mock_result = mocker.MagicMock()
+    mock_result.scalar_one_or_none.return_value = mock_msg
+    mock_db.execute.return_value = mock_result
+
+    # Mock external handlers to prevent background execution in tests
+    mock_send_receipt = mocker.patch("api.dossier.send_dashboard_receipt")
+    mock_run_pipeline = mocker.patch("api.dossier.run_pipeline")
+
+    async def override_get_db():
+        yield mock_db
+
+    app_with_routes.dependency_overrides[get_db] = override_get_db
+
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app_with_routes), base_url="http://test/") as client:
+            response = await client.patch(f"/api/companies/{company_uuid}/approve")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "approved"
+        assert data["company_id"] == str(company_uuid)
+
+        # Verify status updates on company and message
+        assert mock_company.status == "approved"
+        assert mock_msg.status == "approved"
+
+        # Verify EvidenceEvent was added
+        mock_db.add.assert_called_once()
+        event_added = mock_db.add.call_args[0][0]
+        assert event_added.resource_name == "Telegram"
+        assert event_added.artifact_type == "approval_state"
+        assert event_added.payload == {"approved": True, "source": "dashboard"}
+
+        # Verify mock calls
+        mock_send_receipt.assert_called_once_with("Approve Test Corp", "approve")
+        mock_run_pipeline.assert_called_once_with(str(company_uuid))
+    finally:
+        app_with_routes.dependency_overrides.clear()
+
+
+@pytest.mark.anyio
+async def test_reject_company_success(app_with_routes: FastAPI, mocker, company_uuid):
+    from httpx import ASGITransport
+
+    from database import get_db
+
+    # Mock database session
+    mock_db = mocker.AsyncMock()
+    mock_company = Company(
+        id=company_uuid, name="Reject Test Corp", website="https://reject.example.com", status="discovered"
+    )
+    mock_db.get.return_value = mock_company
+
+    # Mock Message query
+    mock_msg = Message(id=company_uuid, company_id=company_uuid, status="pending")
+    mock_result = mocker.MagicMock()
+    mock_result.scalar_one_or_none.return_value = mock_msg
+    mock_db.execute.return_value = mock_result
+
+    mock_send_receipt = mocker.patch("api.dossier.send_dashboard_receipt")
+    mock_run_pipeline = mocker.patch("api.dossier.run_pipeline")
+
+    async def override_get_db():
+        yield mock_db
+
+    app_with_routes.dependency_overrides[get_db] = override_get_db
+
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app_with_routes), base_url="http://test/") as client:
+            response = await client.patch(f"/api/companies/{company_uuid}/reject")
+
+        assert response.status_code == 200
+        data = response.json()
+        assert data["status"] == "rejected"
+        assert data["company_id"] == str(company_uuid)
+
+        # Verify status updates on company and message
+        assert mock_company.status == "rejected"
+        assert mock_msg.status == "rejected"
+
+        # Verify EvidenceEvent was added
+        mock_db.add.assert_called_once()
+        event_added = mock_db.add.call_args[0][0]
+        assert event_added.resource_name == "Telegram"
+        assert event_added.artifact_type == "approval_state"
+        assert event_added.payload == {"approved": False, "source": "dashboard"}
+
+        # Verify mock calls
+        mock_send_receipt.assert_called_once_with("Reject Test Corp", "reject")
+        mock_run_pipeline.assert_not_called()
+    finally:
+        app_with_routes.dependency_overrides.clear()
+
+
+@pytest.mark.anyio
+async def test_approve_company_not_found(app_with_routes: FastAPI, mocker):
+    import uuid
+
+    from httpx import ASGITransport
+
+    from database import get_db
+
+    random_id = uuid.uuid4()
+    mock_db = mocker.AsyncMock()
+    mock_db.get.return_value = None
+
+    async def override_get_db():
+        yield mock_db
+
+    app_with_routes.dependency_overrides[get_db] = override_get_db
+
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app_with_routes), base_url="http://test/") as client:
+            response = await client.patch(f"/api/companies/{random_id}/approve")
+
+        assert response.status_code == 404
+    finally:
+        app_with_routes.dependency_overrides.clear()
+
+
+@pytest.mark.anyio
+async def test_reject_company_not_found(app_with_routes: FastAPI, mocker):
+    import uuid
+
+    from httpx import ASGITransport
+
+    from database import get_db
+
+    random_id = uuid.uuid4()
+    mock_db = mocker.AsyncMock()
+    mock_db.get.return_value = None
+
+    async def override_get_db():
+        yield mock_db
+
+    app_with_routes.dependency_overrides[get_db] = override_get_db
+
+    try:
+        async with AsyncClient(transport=ASGITransport(app=app_with_routes), base_url="http://test/") as client:
+            response = await client.patch(f"/api/companies/{random_id}/reject")
 
         assert response.status_code == 404
     finally:

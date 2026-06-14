@@ -5,6 +5,7 @@ Act: check Unipile for LinkedIn replies, check IMAP for email replies.
 Observe: if reply — notify. If silence — draft follow-up, send to Telegram gate.
 Runs as a background task every hour.
 """
+
 import asyncio
 import logging
 from datetime import datetime

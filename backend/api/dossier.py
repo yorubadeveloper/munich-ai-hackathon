@@ -1,3 +1,4 @@
+import asyncio
 from datetime import datetime
 from typing import Optional
 from uuid import UUID
@@ -6,9 +7,11 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
+from agents.orchestrator import run_pipeline
 from database import get_db
 from models import Company, EvidenceEvent, Message, Research
-from schemas.dossier import ApprovalState, CompanyDossierResponse
+from schemas.dossier import ApprovalActionResponse, ApprovalState, CompanyDossierResponse
+from tools.telegram_client import send_dashboard_receipt
 
 router = APIRouter()
 
@@ -21,26 +24,19 @@ async def get_company_dossier(company_id: UUID, db: AsyncSession = Depends(get_d
         raise HTTPException(status_code=404, detail="Company not found")
 
     # 2. Fetch Research
-    research_result = await db.execute(
-        select(Research).where(Research.company_id == company_id)
-    )
+    research_result = await db.execute(select(Research).where(Research.company_id == company_id))
     research = research_result.scalar_one_or_none()
 
     # 3. Fetch Evidence Events
     events_result = await db.execute(
-        select(EvidenceEvent)
-        .where(EvidenceEvent.company_id == company_id)
-        .order_by(EvidenceEvent.timestamp.asc())
+        select(EvidenceEvent).where(EvidenceEvent.company_id == company_id).order_by(EvidenceEvent.timestamp.asc())
     )
     evidence_events = list(events_result.scalars().all())
 
     # 4. Fetch Outreach Draft (Message)
     # Get the latest message to find the outreach hook and maybe approval state
     message_result = await db.execute(
-        select(Message)
-        .where(Message.company_id == company_id)
-        .order_by(Message.id.desc())
-        .limit(1)
+        select(Message).where(Message.company_id == company_id).order_by(Message.id.desc()).limit(1)
     )
     message = message_result.scalar_one_or_none()
 
@@ -78,11 +74,7 @@ async def get_company_dossier(company_id: UUID, db: AsyncSession = Depends(get_d
         elif message.status == "rejected":
             approval_status = "rejected"
 
-    approval_state = ApprovalState(
-        status=approval_status,
-        comment=approval_comment,
-        updated_at=approval_updated_at
-    )
+    approval_state = ApprovalState(status=approval_status, comment=approval_comment, updated_at=approval_updated_at)
 
     # 6. Construct Dossier
     return CompanyDossierResponse(
@@ -102,5 +94,74 @@ async def get_company_dossier(company_id: UUID, db: AsyncSession = Depends(get_d
         fit_reasoning=research.fit_reasoning if research else None,
         evidence_events=evidence_events,
         outreach_hook=outreach_hook,
-        approval_state=approval_state
+        approval_state=approval_state,
     )
+
+
+@router.patch("/companies/{company_id}/approve", response_model=ApprovalActionResponse)
+async def approve_company(company_id: UUID, db: AsyncSession = Depends(get_db)):
+    company = await db.get(Company, company_id)
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    # Update company status
+    company.status = "approved"
+
+    # Also update any pending message to approved
+    msg_result = await db.execute(select(Message).where(Message.company_id == company.id, Message.status == "pending"))
+    message = msg_result.scalar_one_or_none()
+    if message:
+        message.status = "approved"
+
+    # Create evidence event
+    event = EvidenceEvent(
+        company_id=company.id,
+        resource_name="Telegram",
+        artifact_type="approval_state",
+        payload={"approved": True, "source": "dashboard"},
+        status="success",
+        timestamp=datetime.utcnow(),
+    )
+    db.add(event)
+    await db.commit()
+
+    # Send receipt notification to Telegram bot (asynchronously, ignoring errors)
+    asyncio.create_task(send_dashboard_receipt(company.name, "approve"))
+
+    # Spawn orchestrator pipeline update
+    asyncio.create_task(run_pipeline(str(company.id)))
+
+    return ApprovalActionResponse(status="approved", company_id=company.id)
+
+
+@router.patch("/companies/{company_id}/reject", response_model=ApprovalActionResponse)
+async def reject_company(company_id: UUID, db: AsyncSession = Depends(get_db)):
+    company = await db.get(Company, company_id)
+    if not company:
+        raise HTTPException(status_code=404, detail="Company not found")
+
+    # Update company status
+    company.status = "rejected"
+
+    # Also update any pending message to rejected
+    msg_result = await db.execute(select(Message).where(Message.company_id == company.id, Message.status == "pending"))
+    message = msg_result.scalar_one_or_none()
+    if message:
+        message.status = "rejected"
+
+    # Create evidence event
+    event = EvidenceEvent(
+        company_id=company.id,
+        resource_name="Telegram",
+        artifact_type="approval_state",
+        payload={"approved": False, "source": "dashboard"},
+        status="success",
+        timestamp=datetime.utcnow(),
+    )
+    db.add(event)
+    await db.commit()
+
+    # Send receipt notification to Telegram bot (asynchronously, ignoring errors)
+    asyncio.create_task(send_dashboard_receipt(company.name, "reject"))
+
+    return ApprovalActionResponse(status="rejected", company_id=company.id)

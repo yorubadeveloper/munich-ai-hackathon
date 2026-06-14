@@ -10,9 +10,7 @@ router = APIRouter()
 
 @router.get("/log")
 async def get_log(limit: int = 50, db: AsyncSession = Depends(get_db)):
-    result = await db.execute(
-        select(AgentLog).order_by(AgentLog.created_at.desc()).limit(limit)
-    )
+    result = await db.execute(select(AgentLog).order_by(AgentLog.created_at.desc()).limit(limit))
     logs = result.scalars().all()
     return [
         {

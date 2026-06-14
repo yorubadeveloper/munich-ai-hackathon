@@ -40,3 +40,8 @@ class CompanyDossierResponse(BaseModel):
     approval_state: ApprovalState
 
     model_config = ConfigDict(from_attributes=True)
+
+
+class ApprovalActionResponse(BaseModel):
+    status: str
+    company_id: UUID
