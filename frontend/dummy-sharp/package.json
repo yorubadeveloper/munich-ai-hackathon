@@ -1,0 +1,7 @@
+{
+  "name": "sharp",
+  "version": "0.34.5",
+  "description": "Dummy sharp package to prevent LGPL-3.0 binaries from being installed",
+  "main": "index.js",
+  "license": "MIT"
+}
