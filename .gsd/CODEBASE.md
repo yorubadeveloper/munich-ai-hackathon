@@ -1,7 +1,7 @@
 # Codebase Map
 
-Generated: 2026-06-13T19:41:19Z | Files: 62 | Described: 0/62
-<!-- gsd:codebase-meta {"generatedAt":"2026-06-13T19:41:19Z","fingerprint":"9625fd325caa6c23a8085e85690acbeb8a777243","fileCount":62,"truncated":false} -->
+Generated: 2026-06-14T00:14:55Z | Files: 68 | Described: 0/68
+<!-- gsd:codebase-meta {"generatedAt":"2026-06-14T00:14:55Z","fingerprint":"ed617044c9f8d051f94026e989dede7564f66cc2","fileCount":68,"truncated":false} -->
 
 ### (root)/
 - `.env.example`
@@ -15,7 +15,11 @@ Generated: 2026-06-13T19:41:19Z | Files: 62 | Described: 0/62
 - `.github/PULL_REQUEST_TEMPLATE.md`
 
 ### .github/workflows/
+- `.github/workflows/ci-lint.yml`
+- `.github/workflows/ci-tests.yml`
 - `.github/workflows/docker-build.yml`
+- `.github/workflows/jules_automerge.yml`
+- `.github/workflows/jules_next_task.yml`
 
 ### backend/
 - `backend/.dockerignore`
@@ -61,9 +65,13 @@ Generated: 2026-06-13T19:41:19Z | Files: 62 | Described: 0/62
 - `backend/tools/telegram_client.py`
 - `backend/tools/unipile_client.py`
 
+### docs/
+- `docs/hackathon-resource-map.md`
+
 ### frontend/
 - `frontend/.dockerignore`
 - `frontend/Dockerfile`
+- `frontend/eslint.config.mjs`
 - `frontend/next-env.d.ts`
 - `frontend/next.config.js`
 - `frontend/package-lock.json`
