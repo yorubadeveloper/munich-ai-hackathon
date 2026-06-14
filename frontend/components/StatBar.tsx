@@ -7,6 +7,7 @@ import {
   ChatCircleDots,
   Icon,
 } from '@phosphor-icons/react'
+import type { Company } from '@/lib/api'
 
 function useCountUp(target: number, duration = 650) {
   const [value, setValue] = useState(0)
@@ -75,7 +76,7 @@ function Stat({ label, value, icon: Ico }: { label: string; value: number; icon:
   )
 }
 
-export default function StatBar({ companies }: { companies: any[] }) {
+export default function StatBar({ companies }: { companies: Company[] }) {
   const count = (statuses: string[]) =>
     companies.filter((c) => statuses.includes(c.status)).length
 

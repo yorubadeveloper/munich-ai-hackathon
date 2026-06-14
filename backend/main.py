@@ -5,10 +5,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from database import init_db
-from api import companies, profile, run, log
-from tg.bot import start_bot
 from agents.followup import schedule_followup_checks
+from api import companies, log, profile, run
+from database import init_db
+from tg.bot import start_bot
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("huntagent")
@@ -19,10 +19,11 @@ async def resume_stuck_pipelines():
     On server boot, check for any companies stuck in active transient states
     (e.g., killed mid-execution by a server reload) and reset/re-spawn them.
     """
+    from sqlalchemy import select
+
+    from agents.orchestrator import run_pipeline
     from database import AsyncSessionLocal
     from models import Company
-    from sqlalchemy import select
-    from agents.orchestrator import run_pipeline
 
     await asyncio.sleep(2)  # wait for DB init and bot polling to start
     logger.info("Checking for orphaned/stuck pipelines on startup...")

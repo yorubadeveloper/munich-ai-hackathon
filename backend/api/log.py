@@ -1,9 +1,9 @@
 from fastapi import APIRouter, Depends
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import AgentLog
 from database import get_db
+from models import AgentLog
 
 router = APIRouter()
 
@@ -16,12 +16,12 @@ async def get_log(limit: int = 50, db: AsyncSession = Depends(get_db)):
     logs = result.scalars().all()
     return [
         {
-            "id": str(l.id),
-            "agent": l.agent,
-            "action": l.action,
-            "detail": l.detail,
-            "company_id": str(l.company_id) if l.company_id else None,
-            "created_at": l.created_at.isoformat(),
+            "id": str(log_entry.id),
+            "agent": log_entry.agent,
+            "action": log_entry.action,
+            "detail": log_entry.detail,
+            "company_id": str(log_entry.company_id) if log_entry.company_id else None,
+            "created_at": log_entry.created_at.isoformat(),
         }
-        for l in logs
+        for log_entry in logs
     ]

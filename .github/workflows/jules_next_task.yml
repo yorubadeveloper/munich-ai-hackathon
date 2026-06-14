@@ -1,0 +1,58 @@
+name: 2. Trigger Next Jules Task
+
+on:
+  workflow_dispatch:
+  pull_request:
+    types: [closed]
+    branches: [main]
+
+jobs:
+  next-task:
+    runs-on: ubuntu-latest
+    if: github.event_name == 'workflow_dispatch' || github.event.pull_request.merged == true
+
+    steps:
+      - name: Trigger Google Jules via Official API
+        run: |
+          PROMPT=$(cat <<'EOF'
+          You are a digital agent working on HuntAgent, a stateful multi-agent job-hunting assistant. HuntAgent discovers companies, researches fit, drafts personalized outreach, asks for Telegram approval, sends via LinkedIn DM or email, and watches for replies.
+
+          TASK:
+          1. Read README.md, ARCHITECTURE.md, AGENTS.md if present, and only Markdown files under `.gsd/**/*.md` to understand the project structure and rules. Ignore every non-Markdown file under `.gsd`, including JSONL files, runtime files, caches, generated state, and other artifacts.
+          2. FIRST PRIORITY: Finish the tasks defined in `.gsd` Markdown files exactly as written there. Treat `.gsd` Markdown files as the execution source of truth. Look for the active slice in `.gsd/STATE.md`. If that is missing or already complete, use the first unchecked `[ ]` slice in the active milestone roadmap (`.gsd/milestones/*/*-ROADMAP.md`). If `.gsd/QUEUE.md` exists, use the first unfinished queued task after any active state or roadmap task.
+          3. ONLY AFTER `.gsd` MARKDOWN TASKS ARE EMPTY: Search for ways to enhance the repository automatically, following the same continuous-improvement pipeline pattern used in the SafEnergy repository. Inspect `.gsd/**/*.md`, README.md, ARCHITECTURE.md, open issues, failing CI, and obvious test gaps to select exactly one focused maintenance or product task.
+          4. IF THE QUEUE IS EMPTY (no tasks found): Act proactively to improve the repository. Audit the codebase against README.md and ARCHITECTURE.md, run linters and tests, and identify technical debt, missing tests, broken docs, or small correctness issues. Create a new self-assigned maintenance task in `.gsd/QUEUE.md`, mark it as the active task in `.gsd/STATE.md`, and proceed to implement it.
+          5. Implement the ENTIRE active task as described (code + integration + tests).
+          6. Update the relevant `.gsd` state, queue, or roadmap checkbox to mark the task as completed.
+          7. SELF-IMPROVEMENT LOOP: While working, if you discover technical debt, missing tests, or architectural drift outside your immediate task, DO NOT fix it in this PR. Instead, create a new explicitly scoped task and append it to `.gsd/QUEUE.md` for future execution.
+          8. ALWAYS run the relevant repository checks before concluding:
+             - Backend changes: `cd backend && uv lock --check && uv run ruff check --exclude .agents . && PYTHONPATH="$PWD" PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run pytest tests -q`
+             - Frontend changes: `cd frontend && npm run lint && npm run typecheck && npm test`
+             - Docker or compose changes: `docker compose build`
+             If verification fails, fix the errors before concluding.
+          9. NEVER ask the user anything. Always decide and proceed autonomously. Do the task, update `.gsd`, and open ONE PR with everything.
+
+          STRICT RULES:
+          - Implement the full feature or fix in one PR. Keep it strictly scoped to the active task.
+          - Follow existing conventions in README.md, ARCHITECTURE.md, AGENTS.md if present, and the surrounding code.
+          - Do NOT refactor or modify code outside the scope of your current task. If it needs fixing, queue it in `.gsd/QUEUE.md` instead.
+          - Use `uv` for backend dependency management and `npm` for frontend dependency management.
+          - Do NOT modify `.github/workflows/**` unless explicitly requested by the task.
+          - Do not commit secrets, local `.env` values, generated caches, databases, or downloaded provider data.
+          - Run the appropriate tests and linters as defined in the repository contract.
+          EOF
+          )
+
+          curl -f 'https://jules.googleapis.com/v1alpha/sessions' \
+            -X POST \
+            -H "Content-Type: application/json" \
+            -H "X-Goog-Api-Key: ${{ secrets.JULES_API_KEY }}" \
+            -d "$(jq -n \
+              --arg prompt "$PROMPT" \
+              --arg source "sources/github/${{ github.repository }}" \
+              '{
+                "prompt": $prompt,
+                "sourceContext": {"source": $source, "githubRepoContext": {"startingBranch": "main"}},
+                "automationMode": "AUTO_CREATE_PR",
+                "title": "Jules Next Task Implementation"
+              }')"

@@ -11,11 +11,11 @@ from datetime import datetime
 
 from sqlalchemy import select
 
-from models import Company, Message, AgentLog
-from tools.unipile_client import check_linkedin_replies
+from database import AsyncSessionLocal
+from models import AgentLog, Company, Message
 from tools.gemini_client import draft_followup_message
 from tools.telegram_client import notify_reply, send_followup_approval
-from database import AsyncSessionLocal
+from tools.unipile_client import check_linkedin_replies
 
 log = logging.getLogger(__name__)
 

@@ -19,5 +19,20 @@ dependencies = [
     "apscheduler==3.10.4",
 ]
 
+[dependency-groups]
+dev = [
+    "pytest>=8.0",
+    "ruff>=0.11",
+]
+
+[tool.ruff]
+line-length = 120
+target-version = "py313"
+
+[tool.ruff.lint]
+# Enable isort (I) and flake8 (E, F) checks while ignoring line length (E501).
+select = ["E", "F", "I"]
+ignore = ["E501"]
+
 [tool.uv]
 package = false

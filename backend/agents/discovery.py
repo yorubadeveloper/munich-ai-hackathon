@@ -9,14 +9,14 @@ Observe: run an LLM relevance gate to drop listicles/aggregators/off-target nois
 import logging
 from datetime import datetime
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Company, UserProfile, AgentLog
-from tools.tavily_client import search
-from tools.gliner_client import extract_job_entities
+from models import AgentLog, Company, UserProfile
 from tools.gemini_client import check_relevance
+from tools.gliner_client import extract_job_entities
 from tools.safe_http import UnsafeOutboundRequestError, validate_public_https_url
+from tools.tavily_client import search
 
 log = logging.getLogger(__name__)
 

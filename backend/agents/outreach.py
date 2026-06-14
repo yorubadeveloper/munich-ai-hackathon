@@ -6,10 +6,10 @@ Observe: save draft, hand off to Telegram gate.
 """
 from dataclasses import dataclass
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Company, Research, Message, UserProfile, AgentLog
+from models import AgentLog, Company, Message, Research, UserProfile
 from tools.gemini_client import draft_outreach_message
 
 

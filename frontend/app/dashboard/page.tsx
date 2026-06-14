@@ -7,22 +7,40 @@ import ActivityFeed from '@/components/ActivityFeed'
 import StatBar from '@/components/StatBar'
 import AddCompany from '@/components/AddCompany'
 import { getCompanies, getLog, triggerRun } from '@/lib/api'
+import type { AgentLog, Company } from '@/lib/api'
+
+async function loadDashboardData() {
+  const [companies, logs] = await Promise.all([getCompanies(), getLog()])
+  return { companies, logs }
+}
 
 export default function Dashboard() {
-  const [companies, setCompanies] = useState<any[]>([])
-  const [logs, setLogs] = useState<any[]>([])
+  const [companies, setCompanies] = useState<Company[]>([])
+  const [logs, setLogs] = useState<AgentLog[]>([])
   const [running, setRunning] = useState(false)
 
   const refresh = async () => {
-    const [c, l] = await Promise.all([getCompanies(), getLog()])
-    setCompanies(c)
-    setLogs(l)
+    const next = await loadDashboardData()
+    setCompanies(next.companies)
+    setLogs(next.logs)
   }
 
   useEffect(() => {
-    refresh()
-    const interval = setInterval(refresh, 4000)
-    return () => clearInterval(interval)
+    let ignore = false
+    const load = () => {
+      loadDashboardData().then((next) => {
+        if (ignore) return
+        setCompanies(next.companies)
+        setLogs(next.logs)
+      })
+    }
+
+    load()
+    const interval = setInterval(load, 4000)
+    return () => {
+      ignore = true
+      clearInterval(interval)
+    }
   }, [])
 
   const handleRun = async () => {

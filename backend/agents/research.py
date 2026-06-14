@@ -11,18 +11,18 @@ Observe: Gemini synthesises company facts; the resolved person (name, role,
 import logging
 from dataclasses import dataclass
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Company, Research, UserProfile, AgentLog
-from tools.tavily_client import search
-from tools.gemini_client import synthesise_research, score_fit, pick_best_contact
-from tools.unipile_client import search_linkedin_people
+from models import AgentLog, Company, Research, UserProfile
+from tools.gemini_client import pick_best_contact, score_fit, synthesise_research
 from tools.safe_http import (
     UnsafeOutboundRequestError,
     public_https_url_host,
     validate_public_https_url,
 )
+from tools.tavily_client import search
+from tools.unipile_client import search_linkedin_people
 
 log = logging.getLogger(__name__)
 

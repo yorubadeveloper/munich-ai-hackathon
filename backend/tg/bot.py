@@ -12,6 +12,7 @@ installed `python-telegram-bot` package, whose top-level import is `telegram`.
 import asyncio
 import logging
 
+from sqlalchemy import select
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import (
@@ -20,12 +21,11 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-from sqlalchemy import select
 
 from agents.orchestrator import run_pipeline
-from models import Company, Message
-from database import AsyncSessionLocal
 from config import settings
+from database import AsyncSessionLocal
+from models import Company, Message
 
 log = logging.getLogger(__name__)
 
