@@ -18,7 +18,7 @@
 - [x] **S02: Dossier API Contract** `risk:high` `depends:[S01]`
   > After this: The dashboard can request a typed company dossier containing evidence, resource labels, fit reasoning, outreach hook, approval state, and partial-failure data.
 
-- [ ] **S03: Dashboard Company Dossier** `risk:medium` `depends:[S02]`
+- [x] **S03: Dashboard Company Dossier** `risk:medium` `depends:[S02]`
   > After this: A user can open a company dossier and inspect Tavily sources, Pioneer entities, Gemini reasoning, the outreach hook, approval state, and resource labels.
 
 - [ ] **S04: Approval and Optional Visual Layer** `risk:medium` `depends:[S03]`

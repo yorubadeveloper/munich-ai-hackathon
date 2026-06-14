@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M001-8itnlq: Auditable Resource Dossier
-**Active Slice:** S03: Dashboard Company Dossier
+**Active Slice:** S04: Approval and Optional Visual Layer
 **Phase:** planning
 **Requirements Status:** 2 active · 0 validated · 0 deferred · 0 out of scope
 
@@ -20,4 +20,4 @@
 - None
 
 ## Next Action
-Slice S03 has no DB tasks. Plan slice tasks before execution.
+Plan tasks for S04: Approval and Optional Visual Layer.
