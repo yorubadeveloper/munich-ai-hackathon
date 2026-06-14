@@ -37,12 +37,12 @@ Upstream: S03 dossier UI (frontend/app/companies/[id]/page.tsx), S02 dossier API
   - Files: `backend/tools/fal_client.py`, `backend/config.py`, `backend/pyproject.toml`, `backend/agents/orchestrator.py`
   - Verify: cd backend && uv run ruff check backend/tools/fal_client.py backend/config.py backend/agents/orchestrator.py
 
-- [ ] **T03: Add frontend approval actions and optional visual dossier component** `est:50m`
+- [x] **T03: Added frontend approval/rejection controls and optional fal visual artifact rendering to the company dossier page.** `est:50m`
   Why: Users need to approve/reject from the dashboard and see fal visual artifacts when available.
   - Files: `frontend/lib/api.ts`, `frontend/components/ApprovalActions.tsx`, `frontend/components/OptionalVisualDossier.tsx`, `frontend/app/companies/[id]/page.tsx`
   - Verify: cd frontend && npx next build
 
-- [ ] **T04: Add tests for approval endpoints and fal client failure modes** `est:40m`
+- [x] **T04: Added and verified backend tests for company approval endpoints and fal client failure/timeout scenarios.** `est:40m`
   Why: We need to verify the new approval endpoints work correctly and that the fal client degrades gracefully.
   - Files: `backend/tests/test_dossier.py`, `backend/tests/test_fal.py`
   - Verify: cd backend && uv run python -m pytest tests/test_fal.py -v --tb=short

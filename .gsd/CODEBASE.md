@@ -1,7 +1,7 @@
 # Codebase Map
 
-Generated: 2026-06-14T21:38:52Z | Files: 79 | Described: 0/79
-<!-- gsd:codebase-meta {"generatedAt":"2026-06-14T21:38:52Z","fingerprint":"51068fdfcdcbcc0f4ad9a4fa555eb982f402fb19","fileCount":79,"truncated":false} -->
+Generated: 2026-06-14T23:36:21Z | Files: 84 | Described: 0/84
+<!-- gsd:codebase-meta {"generatedAt":"2026-06-14T23:36:21Z","fingerprint":"1332f5eba9cbae39961e222e95ecb8825d7afe5f","fileCount":84,"truncated":false} -->
 
 ### (root)/
 - `.env.example`
@@ -53,11 +53,15 @@ Generated: 2026-06-14T21:38:52Z | Files: 79 | Described: 0/79
 - `backend/schemas/dossier.py`
 - `backend/schemas/evidence.py`
 
+### backend/scripts/
+- `backend/scripts/seed_demo_dossier.py`
+
 ### backend/tests/
 - `backend/tests/conftest.py`
 - `backend/tests/test_dossier.py`
 - `backend/tests/test_evidence.py`
 - `backend/tests/test_fal_client.py`
+- `backend/tests/test_fal.py`
 - `backend/tests/test_safe_http.py`
 - `backend/tests/test_tavily_client.py`
 
@@ -109,10 +113,13 @@ Generated: 2026-06-14T21:38:52Z | Files: 79 | Described: 0/79
 ### frontend/components/
 - `frontend/components/ActivityFeed.tsx`
 - `frontend/components/AddCompany.tsx`
+- `frontend/components/ApprovalActions.tsx`
 - `frontend/components/CompanyCard.tsx`
 - `frontend/components/Lottie.tsx`
+- `frontend/components/OptionalVisualDossier.tsx`
 - `frontend/components/PipelineBoard.tsx`
 - `frontend/components/ResourceChart.tsx`
+- `frontend/components/ResourceChartInner.tsx`
 - `frontend/components/StatBar.tsx`
 - `frontend/components/StatusBadge.tsx`
 

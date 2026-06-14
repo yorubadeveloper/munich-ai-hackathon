@@ -4,7 +4,7 @@ estimated_files: 2
 skills_used: []
 ---
 
-# T04: Add tests for approval endpoints and fal client failure modes
+# T04: Added and verified backend tests for company approval endpoints and fal client failure/timeout scenarios.
 
 Why: We need to verify the new approval endpoints work correctly and that the fal client degrades gracefully.
 

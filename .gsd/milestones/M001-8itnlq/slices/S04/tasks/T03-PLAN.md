@@ -4,7 +4,7 @@ estimated_files: 4
 skills_used: []
 ---
 
-# T03: Add frontend approval actions and optional visual dossier component
+# T03: Added frontend approval/rejection controls and optional fal visual artifact rendering to the company dossier page.
 
 Why: Users need to approve/reject from the dashboard and see fal visual artifacts when available.
 

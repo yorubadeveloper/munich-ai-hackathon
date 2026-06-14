@@ -21,7 +21,7 @@
 - [x] **S03: Dashboard Company Dossier** `risk:medium` `depends:[S02]`
   > After this: A user can open a company dossier and inspect Tavily sources, Pioneer entities, Gemini reasoning, the outreach hook, approval state, and resource labels.
 
-- [ ] **S04: Approval and Optional Visual Layer** `risk:medium` `depends:[S03]`
+- [x] **S04: Approval and Optional Visual Layer** `risk:medium` `depends:[S03]`
   > After this: The review flow preserves Telegram approval and can show optional fal-style visual output without blocking core company review.
 
 - [ ] **S05: Verification and Demo Readiness** `risk:low` `depends:[S04]`
