@@ -1,7 +1,7 @@
 # Codebase Map
 
-Generated: 2026-06-14T10:04:42Z | Files: 75 | Described: 0/75
-<!-- gsd:codebase-meta {"generatedAt":"2026-06-14T10:04:42Z","fingerprint":"d140e9fa6090841806a7d6ecad1ef8de1c122f46","fileCount":75,"truncated":false} -->
+Generated: 2026-06-14T14:54:44Z | Files: 77 | Described: 0/77
+<!-- gsd:codebase-meta {"generatedAt":"2026-06-14T14:54:44Z","fingerprint":"efe286f1d0b6bab789aadba97b5ddd5bd79f7cc1","fileCount":77,"truncated":false} -->
 
 ### (root)/
 - `.env.example`
@@ -95,6 +95,9 @@ Generated: 2026-06-14T10:04:42Z | Files: 75 | Described: 0/75
 - `frontend/app/layout.tsx`
 - `frontend/app/page.tsx`
 
+### frontend/app/companies/[id]/
+- `frontend/app/companies/[id]/page.tsx`
+
 ### frontend/app/dashboard/
 - `frontend/app/dashboard/page.tsx`
 
@@ -107,6 +110,7 @@ Generated: 2026-06-14T10:04:42Z | Files: 75 | Described: 0/75
 - `frontend/components/CompanyCard.tsx`
 - `frontend/components/Lottie.tsx`
 - `frontend/components/PipelineBoard.tsx`
+- `frontend/components/ResourceChart.tsx`
 - `frontend/components/StatBar.tsx`
 - `frontend/components/StatusBadge.tsx`
 
