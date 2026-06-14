@@ -1,44 +1,23 @@
 'use client'
-import { useEffect, useRef, useState } from 'react'
+import { useEffect, useRef } from 'react'
 
 /**
- * Thin wrapper around lottie-web that loads a JSON animation from /public.
- * Client-only; renders nothing until the animation is fetched.
+ * Thin wrapper around lottie-web that renders bundled animation data.
+ * Client-only; callers import local JSON instead of passing a fetchable URL.
  */
 export default function Lottie({
-  src,
+  animationData,
   style,
   loop = true,
 }: {
-  src: string
+  animationData: unknown
   style?: React.CSSProperties
   loop?: boolean
 }) {
   const ref = useRef<HTMLDivElement>(null)
-  const [data, setData] = useState<any>(null)
 
   useEffect(() => {
-    // SSRF/CSRF Hardening: Only allow local relative paths starting with '/'.
-    // Reject any absolute URLs, external schemes, or double slashes.
-    if (!src.startsWith('/') || /^(https?:)?\/\//i.test(src)) {
-      console.warn("Blocked external or absolute Lottie URL to prevent SSRF:", src)
-      return
-    }
-
-    let alive = true
-    fetch(src)
-      .then((r) => r.json())
-      .then((d) => {
-        if (alive) setData(d)
-      })
-      .catch(() => {})
-    return () => {
-      alive = false
-    }
-  }, [src])
-
-  useEffect(() => {
-    if (!data || !ref.current) return
+    if (!animationData || !ref.current) return
     let anim: any
     let cancelled = false
     import('lottie-web').then((mod) => {
@@ -48,14 +27,14 @@ export default function Lottie({
         renderer: 'svg',
         loop,
         autoplay: true,
-        animationData: data,
+        animationData,
       })
     })
     return () => {
       cancelled = true
       if (anim) anim.destroy()
     }
-  }, [data, loop])
+  }, [animationData, loop])
 
   return <div ref={ref} style={style} aria-hidden />
 }

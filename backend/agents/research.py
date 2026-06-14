@@ -69,7 +69,7 @@ async def _find_decision_maker(company: Company, profile: UserProfile) -> dict:
         cand_co = (c.get("company") or "").lower().strip()
         cand_hl = (c.get("headline") or "").lower().strip()
         cand_role = (c.get("role") or "").lower().strip()
-        
+
         # Match if the target company name appears as a word/substring in their current
         # company, headline, or role (e.g. "Atira" in "Atira GmbH" or "Head of Engineering at Atira").
         if (
@@ -135,9 +135,9 @@ async def run(company: Company, db: AsyncSession) -> ResearchResult:
 
     # OBSERVE: synthesise company facts with Gemini.
     enriched = await synthesise_research(company.name, raw_results)
-    
-    # Critical: inject the raw job description text (if available) into the 
-    # enrichment data before scoring. This guarantees the fit evaluator sees the 
+
+    # Critical: inject the raw job description text (if available) into the
+    # enrichment data before scoring. This guarantees the fit evaluator sees the
     # exact tech requirements from the posting, even if generic web searches missed them!
     if company.raw_job_text:
         enriched["job_description_requirements"] = company.raw_job_text

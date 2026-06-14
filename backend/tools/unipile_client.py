@@ -4,7 +4,7 @@ Handles LinkedIn DM sending and reply checking.
 7-day free trial: https://www.unipile.com
 
 Email delivery goes through Resend (https://resend.com) over its HTTP API,
-reusing httpx so no extra SDK/SMTP handling is needed.
+using the shared safe HTTP helper so no extra SDK/SMTP handling is needed.
 """
 import logging
 import httpx
@@ -136,6 +136,80 @@ async def send_linkedin_invite(provider_id: str, note: str) -> dict:
     except Exception as e:
         log.warning(f"Unipile LinkedIn invite error: {e}")
         return {"error": str(e)}
+
+
+async def search_linkedin_people(
+    keywords: str,
+    company_keyword: str | None = None,
+    limit: int = 5,
+) -> list[dict]:
+    """
+    Search LinkedIn people on behalf of the connected account (classic search).
+    Used to find a decision-maker (CTO / VP Eng / founder) at a target company.
+
+    Returns a normalized list of:
+        {name, headline, role, profile_url, provider_id, location}
+    `provider_id` is Unipile's internal person id (the "ACoAA..." value) which is
+    what /messages needs as an attendee to actually send a DM.
+    """
+    config = _unipile_config()
+    if config is None or not settings.unipile_account_id:
+        return []
+    unipile_base, unipile_host = config
+
+    # Combine role keywords with the company so results are scoped to that company.
+    kw = keywords
+    if company_keyword:
+        kw = f"{keywords} {company_keyword}".strip()
+
+    payload = {
+        "api": "classic",
+        "category": "people",
+        "keywords": kw,
+    }
+    try:
+        async with safe_async_client(allowed_hosts={unipile_host}) as client:
+            response = await client.post(
+                f"{unipile_base}/linkedin/search",
+                params={"account_id": settings.unipile_account_id, "limit": limit},
+                headers={
+                    "X-API-KEY": settings.unipile_api_key,
+                    "accept": "application/json",
+                    "content-type": "application/json",
+                },
+                json=payload,
+                timeout=40,
+            )
+            if response.status_code >= 400:
+                log.warning(
+                    f"Unipile people search failed "
+                    f"({response.status_code}): {response.text[:300]}"
+                )
+                return []
+            items = response.json().get("items", [])
+    except Exception as e:
+        log.warning(f"Unipile people search error: {e}")
+        return []
+
+    people = []
+    for it in items:
+        if it.get("type") != "PEOPLE":
+            continue
+        positions = it.get("current_positions") or []
+        role = positions[0].get("role") if positions else None
+        company_name = positions[0].get("company") if positions else None
+        people.append(
+            {
+                "name": it.get("name"),
+                "headline": it.get("headline"),
+                "role": role or it.get("headline"),
+                "company": company_name,
+                "profile_url": it.get("public_profile_url") or it.get("profile_url"),
+                "provider_id": it.get("id"),
+                "location": it.get("location"),
+            }
+        )
+    return people
 
 
 async def search_linkedin_people(

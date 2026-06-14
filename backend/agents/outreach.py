@@ -183,7 +183,7 @@ async def draft(company: Company, db: AsyncSession) -> OutreachDraft:
 
     hm_role = research.hiring_manager_role if research else None
     template = LINKEDIN_PROMPT if channel == "linkedin" else EMAIL_PROMPT
-    
+
     prompt = template.format(
         user_name=profile.name,
         bio=profile.bio or "",
