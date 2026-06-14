@@ -1,10 +1,9 @@
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 from sqlalchemy import select
 from agents.orchestrator import run_discovery, run_pipeline
 from models import Company, Research, AgentLog
 from database import AsyncSessionLocal
-from tools.safe_http import UnsafeOutboundRequestError, normalize_public_https_url
 import asyncio
 
 router = APIRouter()
@@ -23,14 +22,11 @@ class AddCompanyIn(BaseModel):
     job_description: str = ""
 
 
-def _clean_public_url(url: str, field_name: str) -> str:
-    try:
-        return normalize_public_https_url(url)
-    except UnsafeOutboundRequestError as exc:
-        raise HTTPException(
-            status_code=400,
-            detail=f"{field_name} must be a public HTTPS URL: {exc}",
-        ) from exc
+def _clean_domain_url(url: str) -> str:
+    u = (url or "").strip()
+    if u and not u.startswith("http"):
+        u = "https://" + u
+    return u
 
 
 @router.post("/companies/add")
@@ -44,8 +40,8 @@ async def add_company(data: AddCompanyIn):
     if not name:
         return {"status": "error", "detail": "name is required"}
 
-    company_url = _clean_public_url(data.company_url, "company_url")
-    job_url = _clean_public_url(data.job_url, "job_url")
+    company_url = _clean_domain_url(data.company_url)
+    job_url = _clean_domain_url(data.job_url)
 
     async with AsyncSessionLocal() as db:
         # Avoid duplicates by job_url if given, else by company_url, else by name.
