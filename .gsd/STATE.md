@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M001-8itnlq: Auditable Resource Dossier
-**Active Slice:** S01: Evidence Trail Backbone
+**Active Slice:** S02: Dossier API Contract
 **Phase:** planning
 **Requirements Status:** 2 active · 0 validated · 0 deferred · 0 out of scope
 
@@ -20,4 +20,4 @@
 - None
 
 ## Next Action
-Slice S01 has no DB tasks. Plan slice tasks before execution.
+Slice S02 has no DB tasks. Plan slice tasks before execution.
