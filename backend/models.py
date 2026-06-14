@@ -2,7 +2,7 @@ import uuid
 from datetime import datetime
 
 from sqlalchemy import DateTime, Float, ForeignKey, String, Text
-from sqlalchemy.dialects.postgresql import ARRAY, UUID
+from sqlalchemy.dialects.postgresql import ARRAY, JSONB, UUID
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from database import Base
@@ -53,6 +53,9 @@ class Company(Base):
     messages: Mapped[list["Message"]] = relationship(
         "Message", back_populates="company"
     )
+    evidence_events: Mapped[list["EvidenceEvent"]] = relationship(
+        "EvidenceEvent", back_populates="company"
+    )
 
 
 class Research(Base):
@@ -102,6 +105,26 @@ class Message(Base):
     followup_status: Mapped[str] = mapped_column(String, default="pending")
     company: Mapped["Company"] = relationship(
         "Company", back_populates="messages"
+    )
+
+
+class EvidenceEvent(Base):
+    __tablename__ = "evidence_events"
+    id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), primary_key=True, default=uuid.uuid4
+    )
+    company_id: Mapped[uuid.UUID] = mapped_column(
+        UUID(as_uuid=True), ForeignKey("companies.id"), nullable=False
+    )
+    resource_name: Mapped[str] = mapped_column(String, nullable=False)
+    artifact_type: Mapped[str] = mapped_column(String, nullable=False)
+    payload: Mapped[dict] = mapped_column(JSONB, nullable=False, default=dict)
+    status: Mapped[str] = mapped_column(String, default="success", nullable=False)
+    timestamp: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, nullable=False)
+    error_context: Mapped[dict] = mapped_column(JSONB, nullable=True)
+
+    company: Mapped["Company"] = relationship(
+        "Company", back_populates="evidence_events"
     )
 
 
