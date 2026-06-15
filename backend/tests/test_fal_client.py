@@ -44,6 +44,7 @@ async def test_trigger_fal_generation_success(mocker):
     from agents.orchestrator import _trigger_fal_generation
 
     mock_session = mocker.AsyncMock()
+    mock_session.add = mocker.MagicMock()
     # Mock AsyncSessionLocal to return our mock_session when used as an async context manager
     mock_session_local = mocker.patch("agents.orchestrator.AsyncSessionLocal")
     mock_session_local.return_value.__aenter__.return_value = mock_session
@@ -70,6 +71,7 @@ async def test_trigger_fal_generation_failure(mocker):
     from agents.orchestrator import _trigger_fal_generation
 
     mock_session = mocker.AsyncMock()
+    mock_session.add = mocker.MagicMock()
     mock_session_local = mocker.patch("agents.orchestrator.AsyncSessionLocal")
     mock_session_local.return_value.__aenter__.return_value = mock_session
 
