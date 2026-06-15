@@ -15,7 +15,7 @@
 - [x] **S01: Synthetic Data Generation and F1 Evaluation Engine** `risk:medium` `depends:[]`
   > After this: After this, running the generator script produces 30-50 synthetic job postings as JSON, and the evaluator computes per-label F1 scores comparing Pioneer vs Gemini extraction. Pytest proves F1 calculation correctness with static fixtures.
 
-- [ ] **S02: Pioneer Training Integration and Conditional Fine-Tuning** `risk:high` `depends:[S01]`
+- [x] **S02: Pioneer Training Integration and Conditional Fine-Tuning** `risk:high` `depends:[S01]`
   > After this: After this, the evaluator conditionally triggers Pioneer fine-tuning when mean F1 < 80%. If the training API is unavailable, the pipeline logs the failure and continues with base model results. Pytest proves the conditional logic and graceful degradation.
 
 - [ ] **S03: Evaluation Persistence and Visual Comparison Chart** `risk:low` `depends:[S01,S02]`

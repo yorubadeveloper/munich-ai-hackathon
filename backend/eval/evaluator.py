@@ -133,6 +133,16 @@ async def run_evaluation(data_path: str) -> EvalResult:
         log.info(f"  {label}: {score:.4f}")
     log.info(f"  Mean: {mean_f1_gemini:.4f}")
 
+    # Save local artifacts
+    metrics_path = os.path.join(os.path.dirname(__file__), "data", "metrics.json")
+    os.makedirs(os.path.dirname(metrics_path), exist_ok=True)
+    with open(metrics_path, "w", encoding="utf-8") as f:
+        f.write(eval_result.model_dump_json(indent=2))
+
+    # Run finetuning pipeline
+    from eval.finetune import run_finetuning_pipeline
+    await run_finetuning_pipeline(eval_result)
+
     return eval_result
 
 
