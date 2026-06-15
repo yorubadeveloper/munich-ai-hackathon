@@ -7,7 +7,7 @@ Observe: store conversation ID for reply tracking.
 
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -119,7 +119,7 @@ async def send(company: Company, db: AsyncSession) -> DeliveryResult:
         conversation_id = f"email:{recipient_email}"
 
     message.status = "sent"
-    message.sent_at = datetime.utcnow()
+    message.sent_at = datetime.now(timezone.utc)
     message.conversation_id = conversation_id
 
     entry = AgentLog(

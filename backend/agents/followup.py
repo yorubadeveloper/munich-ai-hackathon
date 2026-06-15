@@ -8,7 +8,7 @@ Runs as a background task every hour.
 
 import asyncio
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 
@@ -36,7 +36,7 @@ async def check_and_followup():
                 replies = await check_linkedin_replies(message.conversation_id)
                 if replies:
                     message.status = "replied"
-                    message.replied_at = datetime.utcnow()
+                    message.replied_at = datetime.now(timezone.utc)
                     company.status = "replied"
                     db.add(
                         AgentLog(
@@ -52,7 +52,7 @@ async def check_and_followup():
             # Check if follow-up is due.
             if not message.sent_at:
                 continue
-            days_since = (datetime.utcnow() - message.sent_at).days
+            days_since = (datetime.now(timezone.utc) - message.sent_at).days
             if days_since >= 5 and message.followup_status == "pending":
                 followup_body = await draft_followup_message(company, message)
                 message.followup_draft = followup_body

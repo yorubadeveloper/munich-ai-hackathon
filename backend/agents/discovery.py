@@ -8,7 +8,7 @@ Observe: run an LLM relevance gate to drop listicles/aggregators/off-target nois
 """
 
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -110,7 +110,7 @@ _LISTING_PATTERNS = [
 
 
 def _registry_year() -> int:
-    return datetime.utcnow().year
+    return datetime.now(timezone.utc).year
 
 
 def _build_queries(profile: UserProfile) -> list[str]:

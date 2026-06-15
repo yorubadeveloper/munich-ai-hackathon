@@ -1,5 +1,5 @@
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 import pytest
 from pydantic import ValidationError
@@ -50,7 +50,7 @@ def test_evidence_event_response_from_orm(company_uuid):
             self.artifact_type = "source"
             self.payload = {"data": 123}
             self.status = "success"
-            self.timestamp = datetime.utcnow()
+            self.timestamp = datetime.now(timezone.utc)
             self.error_context = None
 
     orm_obj = MockORM()

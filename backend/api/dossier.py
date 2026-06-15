@@ -1,5 +1,5 @@
 import asyncio
-from datetime import datetime
+from datetime import datetime, timezone
 from typing import Optional
 from uuid import UUID
 
@@ -120,7 +120,7 @@ async def approve_company(company_id: UUID, db: AsyncSession = Depends(get_db)):
         artifact_type="approval_state",
         payload={"approved": True, "source": "dashboard"},
         status="success",
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
     )
     db.add(event)
     await db.commit()
@@ -156,7 +156,7 @@ async def reject_company(company_id: UUID, db: AsyncSession = Depends(get_db)):
         artifact_type="approval_state",
         payload={"approved": False, "source": "dashboard"},
         status="success",
-        timestamp=datetime.utcnow(),
+        timestamp=datetime.now(timezone.utc),
     )
     db.add(event)
     await db.commit()
