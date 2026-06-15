@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M003-n9ygqi: Creative Media and Submission Polish
-**Active Slice:** S01: fal Visual Card Client and Tests
+**Active Slice:** S02: Backend Pipeline fal Integration
 **Phase:** evaluating-gates
 **Requirements Status:** 1 active · 1 validated · 0 deferred · 0 out of scope
 
@@ -21,4 +21,4 @@
 - None
 
 ## Next Action
-Start S01: fal Visual Card Client and Tests
+Start S02: Backend Pipeline fal Integration

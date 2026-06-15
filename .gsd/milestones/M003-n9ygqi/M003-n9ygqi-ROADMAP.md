@@ -10,7 +10,7 @@
 
 ## Slices
 
-- [ ] **S01: fal Visual Card Client and Tests** `risk:medium` `depends:[]`
+- [x] **S01: fal Visual Card Client and Tests** `risk:medium` `depends:[]`
   > After this: Mocked fal client tests pass, validating circuit breaking and basic API interaction.
 
 - [ ] **S02: Backend Pipeline fal Integration** `risk:medium` `depends:[S01]`
