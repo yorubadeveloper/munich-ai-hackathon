@@ -1,0 +1,128 @@
+name: ci-tests
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  backend-tests:
+    name: Backend Tests
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.13'
+
+      - name: Set up uv
+        uses: astral-sh/setup-uv@d4b2f3b6ecc6e67c4457f6d3e41ec42d3d0fcb86 # v5.4.2
+
+      - name: Install dependencies
+        run: uv --directory backend sync --group dev
+
+      - name: Run targeted tests
+        timeout-minutes: 10
+        run: |
+          set -euo pipefail
+
+          if [ ! -d backend/tests ]; then
+            echo "No backend tests directory exists yet."
+            exit 0
+          fi
+
+          if [ "${{ github.event_name }}" = "pull_request" ]; then
+            BASE_SHA="${{ github.event.pull_request.base.sha }}"
+          else
+            BASE_SHA="${{ github.event.before }}"
+          fi
+
+          HEAD_SHA="${{ github.sha }}"
+          if [ -z "$BASE_SHA" ] || [ "$BASE_SHA" = "0000000000000000000000000000000000000000" ]; then
+            BASE_SHA="$(git rev-parse "${HEAD_SHA}^" 2>/dev/null || printf '%s' "$HEAD_SHA")"
+          fi
+
+          declare -A SEEN=()
+          TEST_PATHS=()
+
+          add_path() {
+            local test_path="$1"
+            if [ ! -e "$test_path" ]; then
+              return
+            fi
+            if [ -n "${SEEN[$test_path]:-}" ]; then
+              return
+            fi
+            SEEN["$test_path"]=1
+            TEST_PATHS+=("$test_path")
+          }
+
+          add_all_tests() {
+            add_path backend/tests
+          }
+
+          while IFS= read -r path; do
+            case "$path" in
+              "")
+                continue
+                ;;
+              backend/tests/test_*.py|backend/tests/**/test_*.py)
+                add_path "$path"
+                ;;
+              backend/tests/*)
+                add_all_tests
+                ;;
+              backend/*.py|backend/**/*.py|backend/pyproject.toml|backend/uv.lock|backend/requirements.txt|.github/workflows/ci-tests.yml)
+                add_all_tests
+                ;;
+            esac
+          done < <(git diff --name-only "$BASE_SHA" "$HEAD_SHA")
+
+          if [ "${#TEST_PATHS[@]}" -eq 0 ]; then
+            echo "No relevant backend tests selected."
+            exit 0
+          fi
+
+          PYTEST_PATHS=()
+          for test_path in "${TEST_PATHS[@]}"; do
+            PYTEST_PATHS+=("${test_path#backend/}")
+          done
+
+          printf 'Selected backend test paths:\n'
+          printf '  %s\n' "${TEST_PATHS[@]}"
+          cd backend
+          PYTHONPATH="$PWD" uv run pytest "${PYTEST_PATHS[@]}" -q
+
+  frontend-tests:
+    name: Frontend Tests
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: frontend
+
+    steps:
+      - name: Checkout Repo
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Set up Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run frontend tests
+        timeout-minutes: 10
+        run: npm test

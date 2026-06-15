@@ -4,12 +4,13 @@ Think: what channel, what tone, what specific hook makes this message not get ig
 Act: Gemini drafts a message using company research + user bio.
 Observe: save draft, hand off to Telegram gate.
 """
+
 from dataclasses import dataclass
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Company, Research, Message, UserProfile, AgentLog
+from models import AgentLog, Company, Message, Research, UserProfile
 from tools.gemini_client import draft_outreach_message
 
 
@@ -140,18 +141,14 @@ async def draft(company: Company, db: AsyncSession) -> OutreachDraft:
     profile_result = await db.execute(select(UserProfile).limit(1))
     profile = profile_result.scalar_one_or_none()
 
-    research_result = await db.execute(
-        select(Research).where(Research.company_id == company.id)
-    )
+    research_result = await db.execute(select(Research).where(Research.company_id == company.id))
     research = research_result.scalar_one_or_none()
 
     # Choose channel:
     #  - LinkedIn if we can actually DM them (provider id or profile URL)
     #  - else email if we have a real address for the person
     #  - else fall back to LinkedIn URL if any, otherwise email (jobs@ fallback)
-    has_linkedin = bool(
-        research and (research.hiring_manager_provider_id or research.hiring_manager_linkedin)
-    )
+    has_linkedin = bool(research and (research.hiring_manager_provider_id or research.hiring_manager_linkedin))
     has_email = bool(research and research.hiring_manager_email)
     if has_linkedin:
         channel = "linkedin"
@@ -163,9 +160,7 @@ async def draft(company: Company, db: AsyncSession) -> OutreachDraft:
     # Safe fallbacks so a thin/empty research row never crashes the draft.
     raw_text = company.raw_job_text or ""
     company_summary = (
-        (research.recent_news if research and research.recent_news else None)
-        or raw_text[:300]
-        or company.name
+        (research.recent_news if research and research.recent_news else None) or raw_text[:300] or company.name
     )
 
     # Compose the candidate's projects + links for the prompt.

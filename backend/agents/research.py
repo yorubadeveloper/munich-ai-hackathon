@@ -8,15 +8,16 @@ Act: 1) Find the decision-maker via LinkedIn people-search (Unipile) on behalf o
 Observe: Gemini synthesises company facts; the resolved person (name, role,
          LinkedIn URL, and Unipile provider id for DMs) is stored on Research.
 """
+
 import logging
 from dataclasses import dataclass
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Company, Research, UserProfile, AgentLog
+from models import AgentLog, Company, Research, UserProfile
+from tools.gemini_client import pick_best_contact, score_fit, synthesise_research
 from tools.tavily_client import search
-from tools.gemini_client import synthesise_research, score_fit, pick_best_contact
 from tools.unipile_client import search_linkedin_people
 
 log = logging.getLogger(__name__)
@@ -115,7 +116,9 @@ async def run(company: Company, db: AsyncSession) -> ResearchResult:
 
     queries = [
         f"{company.name} {site_filter} funding round" if site_filter else f"{company.name} funding round",
-        f"{company.name} {site_filter} product about OR mission" if site_filter else f"{company.name} tech stack engineering blog",
+        f"{company.name} {site_filter} product about OR mission"
+        if site_filter
+        else f"{company.name} tech stack engineering blog",
         f"{company.name} product launch news",
     ]
     raw_results = []
@@ -165,9 +168,7 @@ async def run(company: Company, db: AsyncSession) -> ResearchResult:
     )
     db.add(research)
 
-    person_note = (
-        f"{hm_name} ({hm_role})" if hm_name and hm_role else (hm_name or "no contact found")
-    )
+    person_note = f"{hm_name} ({hm_role})" if hm_name and hm_role else (hm_name or "no contact found")
     db.add(
         AgentLog(
             agent="research_agent",

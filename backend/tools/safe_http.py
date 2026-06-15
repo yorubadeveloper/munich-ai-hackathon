@@ -3,6 +3,7 @@
 The backend only needs to call known SaaS APIs. Keep outbound request targets
 allow-listed to prevent SSRF if user-controlled data reaches request inputs.
 """
+
 import re
 import socket
 from collections.abc import AsyncIterator, Iterable
@@ -108,9 +109,7 @@ def _validate_public_resolution(host: str) -> None:
             or parsed.is_reserved
             or parsed.is_unspecified
         ):
-            raise UnsafeOutboundRequestError(
-                "Public web URL host resolves to a non-public address"
-            )
+            raise UnsafeOutboundRequestError("Public web URL host resolves to a non-public address")
 
 
 def validate_public_https_url(url: str) -> str:

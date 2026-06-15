@@ -11,6 +11,7 @@ model id (e.g. "fastino/gliner2-base-v1") or your training job id (e.g.
 "job_abc123"). If no key/model is configured, extraction is skipped gracefully
 and the orchestrator falls back to other signals.
 """
+
 import logging
 
 from config import settings
@@ -18,9 +19,7 @@ from tools.safe_http import safe_async_client, validate_https_url
 
 log = logging.getLogger(__name__)
 
-PIONEER_INFERENCE_URL = validate_https_url(
-    "https://api.pioneer.ai/inference", {"api.pioneer.ai"}
-)
+PIONEER_INFERENCE_URL = validate_https_url("https://api.pioneer.ai/inference", {"api.pioneer.ai"})
 
 # Circuit breaker: once Pioneer rejects us for auth/billing reasons (401/403),
 # that will not change mid-run, so we stop calling it to avoid log spam and
@@ -100,6 +99,49 @@ def _parse_entities(payload: dict) -> dict:
     return result
 
 
+async def submit_training_job(training_data: list[dict]) -> tuple[str, str | None, str | None]:
+    """
+    Submits a training job to Pioneer.
+    Handles errors gracefully to support degradation.
+    Returns: (status, job_id, error_reason)
+    """
+    if not settings.pioneer_api_key:
+        log.warning("No Pioneer API key configured. Skipping training.")
+        return "unavailable", None, "No API key configured"
+
+    url = validate_https_url("https://api.pioneer.ai/v1/training", {"api.pioneer.ai"})
+    try:
+        async with safe_async_client(allowed_hosts={"api.pioneer.ai"}) as client:
+            response = await client.post(
+                url,
+                headers={
+                    "X-API-Key": settings.pioneer_api_key,
+                    "Content-Type": "application/json",
+                },
+                json={
+                    "model": "fastino/gliner2-base-v1",
+                    "training_data": training_data,
+                },
+                timeout=60,
+            )
+
+            if response.status_code >= 400:
+                reason = f"Pioneer training failed ({response.status_code}): {response.text[:200]}"
+                log.warning(reason)
+                return "failed", None, reason
+
+            data = response.json()
+            job_id = data.get("id") or data.get("job_id")
+            if not job_id:
+                return "failed", None, "API returned success but no job ID"
+
+            return "submitted", str(job_id), None
+
+    except Exception as e:
+        reason = f"Pioneer training submission failed: {e}"
+        log.warning(reason)
+        return "failed", None, reason
+
 async def extract_job_entities(text: str) -> dict:
     global _disabled_reason
 
@@ -139,10 +181,7 @@ async def extract_job_entities(text: str) -> dict:
                 )
                 return {}
             if response.status_code >= 400:
-                log.warning(
-                    f"Pioneer inference failed "
-                    f"({response.status_code}): {response.text[:300]}"
-                )
+                log.warning(f"Pioneer inference failed ({response.status_code}): {response.text[:300]}")
                 return {}
             return _parse_entities(response.json())
     except Exception as e:

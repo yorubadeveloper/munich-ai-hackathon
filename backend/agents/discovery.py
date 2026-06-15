@@ -6,16 +6,17 @@ Act: Tavily search across job boards and company pages using profile-driven quer
 Observe: run an LLM relevance gate to drop listicles/aggregators/off-target noise,
          clean up the company name, deduplicate, then write to DB.
 """
+
 import logging
-from datetime import datetime
+from datetime import datetime, timezone
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Company, UserProfile, AgentLog
-from tools.tavily_client import search
-from tools.gliner_client import extract_job_entities
+from models import AgentLog, Company, UserProfile
 from tools.gemini_client import check_relevance
+from tools.gliner_client import extract_job_entities
+from tools.tavily_client import search
 
 log = logging.getLogger(__name__)
 
@@ -108,7 +109,7 @@ _LISTING_PATTERNS = [
 
 
 def _registry_year() -> int:
-    return datetime.utcnow().year
+    return datetime.now(timezone.utc).year
 
 
 def _build_queries(profile: UserProfile) -> list[str]:
@@ -129,43 +130,26 @@ def _build_queries(profile: UserProfile) -> list[str]:
     queries: list[str] = []
 
     # 1. Wellfound (AngelList) — startup-focused, real roles.
-    queries.append(
-        f'"{role_phrase}" {industry_clause} "{location}" site:wellfound.com'.strip()
-    )
+    queries.append(f'"{role_phrase}" {industry_clause} "{location}" site:wellfound.com'.strip())
 
     # 2. Greenhouse boards — company ATS pages = real openings.
-    queries.append(
-        f'"{role_phrase}" {industry_clause} {stack} "{location}" site:boards.greenhouse.io'.strip()
-    )
+    queries.append(f'"{role_phrase}" {industry_clause} {stack} "{location}" site:boards.greenhouse.io'.strip())
 
     # 3. Lever boards — same idea, different ATS.
-    queries.append(
-        f'"{role_phrase}" {industry_clause} "{location}" site:jobs.lever.co'.strip()
-    )
+    queries.append(f'"{role_phrase}" {industry_clause} "{location}" site:jobs.lever.co'.strip())
 
     # 4. "Who is hiring" style, scoped to industry + stage + now.
-    queries.append(
-        f"{industry_clause} {stage_clause} startup hiring {role_phrase} {location} {year}".strip()
-    )
+    queries.append(f"{industry_clause} {stage_clause} startup hiring {role_phrase} {location} {year}".strip())
 
     # 5. Direct careers-page intent for the niche.
-    queries.append(
-        f'{industry_clause} {size} startup "{role_phrase}" careers "{location}" {year}'.strip()
-    )
+    queries.append(f'{industry_clause} {size} startup "{role_phrase}" careers "{location}" {year}'.strip())
 
     # Collapse whitespace and drop empties.
     return [" ".join(q.split()) for q in queries if q.strip()]
 
 
 def _domain(url: str) -> str:
-    d = (
-        (url or "")
-        .replace("https://", "")
-        .replace("http://", "")
-        .replace("www.", "")
-        .split("/")[0]
-        .lower()
-    )
+    d = (url or "").replace("https://", "").replace("http://", "").replace("www.", "").split("/")[0].lower()
     return d
 
 
@@ -246,9 +230,7 @@ async def run(db: AsyncSession) -> list[Company]:
                 continue
 
             # DB-level dedup.
-            existing = await db.execute(
-                select(Company).where(Company.job_url == url)
-            )
+            existing = await db.execute(select(Company).where(Company.job_url == url))
             if existing.scalar_one_or_none():
                 continue
 
@@ -266,12 +248,10 @@ async def run(db: AsyncSession) -> list[Company]:
             # relevance gate or GLiNER (both look at content), not the page
             # title. If we can't identify a real company, this is almost
             # certainly a listing page — drop it instead of inventing one.
-            candidate_name = (verdict.get("company_name") or "").strip() or (
-                entities.get("company_name") or ""
-            ).strip()
+            candidate_name = (verdict.get("company_name") or "").strip() or (entities.get("company_name") or "").strip()
             if not _looks_like_company_name(candidate_name):
                 dropped += 1
-                log.info(f"Dropped (no real company name): {r.get('title','')[:60]}")
+                log.info(f"Dropped (no real company name): {r.get('title', '')[:60]}")
                 continue
             name = candidate_name[:80]
 
@@ -290,11 +270,7 @@ async def run(db: AsyncSession) -> list[Company]:
             kept += 1
 
             # Surface what GLiNER2 pulled out so the activity feed shows it working.
-            gliner_bits = [
-                f"{k}: {v}"
-                for k, v in entities.items()
-                if k != "company_name" and v
-            ]
+            gliner_bits = [f"{k}: {v}" for k, v in entities.items() if k != "company_name" and v]
             gliner_note = " · ".join(gliner_bits[:4]) if gliner_bits else None
             detail = gliner_note or verdict.get("reason") or f"via {_domain(url)}"
 

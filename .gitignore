@@ -23,7 +23,10 @@ build/
 .env.*.local
 *.env.*
 !.env.example
-.gsd
-.bg-shell
 uv.lock
 /frontend/tsconfig.tsbuildinfo
+backend/eval/data/
+.bg-shell
+.bg-shell/
+.gsd-id
+

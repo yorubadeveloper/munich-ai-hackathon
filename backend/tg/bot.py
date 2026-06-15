@@ -9,9 +9,11 @@ on approve. Also supports editing a draft before sending:
 This module lives in `tg/` (not `telegram/`) so it does not shadow the
 installed `python-telegram-bot` package, whose top-level import is `telegram`.
 """
+
 import asyncio
 import logging
 
+from sqlalchemy import select
 from telegram import InlineKeyboardButton, InlineKeyboardMarkup
 from telegram.constants import ParseMode
 from telegram.ext import (
@@ -20,12 +22,11 @@ from telegram.ext import (
     MessageHandler,
     filters,
 )
-from sqlalchemy import select
 
 from agents.orchestrator import run_pipeline
-from models import Company, Message
-from database import AsyncSessionLocal
 from config import settings
+from database import AsyncSessionLocal
+from models import Company, Message
 
 log = logging.getLogger(__name__)
 
@@ -38,9 +39,7 @@ async def _approve_and_send(company_id: str):
     async with AsyncSessionLocal() as db:
         company = await db.get(Company, company_id)
         msg_result = await db.execute(
-            select(Message).where(
-                Message.company_id == company_id, Message.status == "pending"
-            )
+            select(Message).where(Message.company_id == company_id, Message.status == "pending")
         )
         message = msg_result.scalar_one_or_none()
         if message and company:
@@ -65,8 +64,7 @@ async def handle_callback(update, context):
         chat_id = query.message.chat_id
         _pending_edits[chat_id] = company_id
         await query.edit_message_text(
-            query.message.text
-            + "\n\n\u270F\uFE0F *Send me the edited message text now.*"
+            query.message.text + "\n\n\u270f\ufe0f *Send me the edited message text now.*"
             "\nIt will replace the draft. Send /cancel to abort.",
             parse_mode=ParseMode.MARKDOWN,
         )
@@ -88,15 +86,13 @@ async def handle_callback(update, context):
             if company:
                 company.status = "skipped_by_user"
                 await db.commit()
-        await query.edit_message_text("\u274C Skipped.")
+        await query.edit_message_text("\u274c Skipped.")
 
     elif data.startswith("followup_approve:"):
         company_id = data.split(":")[1]
         async with AsyncSessionLocal() as db:
             msg_result = await db.execute(
-                select(Message).where(
-                    Message.company_id == company_id, Message.status == "sent"
-                )
+                select(Message).where(Message.company_id == company_id, Message.status == "sent")
             )
             message = msg_result.scalar_one_or_none()
             if message:
@@ -108,9 +104,7 @@ async def handle_callback(update, context):
         company_id = data.split(":")[1]
         async with AsyncSessionLocal() as db:
             msg_result = await db.execute(
-                select(Message).where(
-                    Message.company_id == company_id, Message.status == "sent"
-                )
+                select(Message).where(Message.company_id == company_id, Message.status == "sent")
             )
             message = msg_result.scalar_one_or_none()
             if message:
@@ -137,9 +131,7 @@ async def handle_text(update, context):
     new_text = update.message.text.strip()
     async with AsyncSessionLocal() as db:
         msg_result = await db.execute(
-            select(Message).where(
-                Message.company_id == company_id, Message.status == "pending"
-            )
+            select(Message).where(Message.company_id == company_id, Message.status == "pending")
         )
         message = msg_result.scalar_one_or_none()
         if message:
@@ -151,12 +143,8 @@ async def handle_text(update, context):
     keyboard = InlineKeyboardMarkup(
         [
             [
-                InlineKeyboardButton(
-                    "\u2705 Send edited", callback_data=f"send_edited:{company_id}"
-                ),
-                InlineKeyboardButton(
-                    "\u274C Cancel", callback_data=f"cancel_edit:{company_id}"
-                ),
+                InlineKeyboardButton("\u2705 Send edited", callback_data=f"send_edited:{company_id}"),
+                InlineKeyboardButton("\u274c Cancel", callback_data=f"cancel_edit:{company_id}"),
             ]
         ]
     )
@@ -173,9 +161,7 @@ async def start_bot():
     try:
         app = Application.builder().token(settings.telegram_bot_token).build()
         app.add_handler(CallbackQueryHandler(handle_callback))
-        app.add_handler(
-            MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text)
-        )
+        app.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_text))
         # /cancel still needs to reach handle_text:
         app.add_handler(MessageHandler(filters.Regex(r"^/cancel$"), handle_text))
         await app.initialize()

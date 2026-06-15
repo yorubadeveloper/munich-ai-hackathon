@@ -1,10 +1,12 @@
+import asyncio
+
 from fastapi import APIRouter
 from pydantic import BaseModel
 from sqlalchemy import select
+
 from agents.orchestrator import run_discovery, run_pipeline
-from models import Company, Research, AgentLog
 from database import AsyncSessionLocal
-import asyncio
+from models import AgentLog, Company, Research
 
 router = APIRouter()
 
@@ -55,9 +57,7 @@ async def add_company(data: AddCompanyIn):
 
         if company:
             # Re-run it: clear prior research, reset status.
-            old = await db.execute(
-                select(Research).where(Research.company_id == company.id)
-            )
+            old = await db.execute(select(Research).where(Research.company_id == company.id))
             for r in old.scalars().all():
                 await db.delete(r)
             company.status = "discovered"
@@ -110,9 +110,7 @@ async def rerun_research(company_id: str):
             return {"status": "not_found"}
 
         # Remove stale research so it gets fully re-done.
-        existing = await db.execute(
-            select(Research).where(Research.company_id == company.id)
-        )
+        existing = await db.execute(select(Research).where(Research.company_id == company.id))
         for r in existing.scalars().all():
             await db.delete(r)
 

@@ -1,8 +1,10 @@
 'use client'
 import { useState } from 'react'
-import { UserCircle, LinkedinLogo, ArrowClockwise, CircleNotch, Trash, EnvelopeSimple, CaretDown } from '@phosphor-icons/react'
+import { UserCircle, LinkedinLogo, ArrowClockwise, CircleNotch, Trash, EnvelopeSimple, CaretDown, ArrowRight } from '@phosphor-icons/react'
 import StatusBadge from './StatusBadge'
 import { rerunResearch, deleteCompany } from '@/lib/api'
+import type { Company } from '@/lib/api'
+import Link from 'next/link'
 
 function FitRing({ score }: { score: number }) {
   const pct = Math.max(0, Math.min(100, (score / 10) * 100))
@@ -48,10 +50,11 @@ export default function CompanyCard({
   company,
   onRerun,
 }: {
-  company: any
+  company: Company
   onRerun?: () => void
 }) {
-  const hasScore = company.fit_score != null
+  const fitScore = company.fit_score
+  const hasScore = fitScore != null
   const tech = (company.tech_stack || []).slice(0, 3)
   const [rerunning, setRerunning] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
@@ -131,7 +134,7 @@ export default function CompanyCard({
           />
         </div>
       ) : hasScore ? (
-        <FitRing score={company.fit_score} />
+        <FitRing score={fitScore} />
       ) : (
         <div
           style={{
@@ -230,7 +233,7 @@ export default function CompanyCard({
         {(company.funding_stage || tech.length > 0) && (
           <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
             {company.funding_stage && <span className="tag">{company.funding_stage}</span>}
-            {tech.map((t: string) => (
+            {tech.map((t) => (
               <span key={t} className="tag">
                 {t}
               </span>
@@ -313,6 +316,28 @@ export default function CompanyCard({
         )}
 
         <div style={{ display: 'flex', gap: 8, marginTop: 12, alignItems: 'center', flexWrap: 'wrap' }}>
+          <Link
+            href={`/companies/${company.id}`}
+            style={{
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: 6,
+              background: 'transparent',
+              border: '1px solid var(--border)',
+              borderRadius: 8,
+              padding: '5px 11px',
+              fontSize: 12,
+              fontWeight: 600,
+              color: 'var(--ink)',
+              textDecoration: 'none',
+              cursor: 'pointer',
+            }}
+            onClick={(e) => e.stopPropagation()}
+          >
+            Dossier
+            <ArrowRight size={13} weight="bold" />
+          </Link>
+
           {confirmDelete ? (
             <div
               style={{

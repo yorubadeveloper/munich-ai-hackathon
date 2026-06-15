@@ -4,15 +4,16 @@ Think: message is approved — what channel, what recipient, send it.
 Act: Unipile for LinkedIn DM, Resend for email.
 Observe: store conversation ID for reply tracking.
 """
+
 import logging
 from dataclasses import dataclass
-from datetime import datetime
+from datetime import datetime, timezone
 
-from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
 
-from models import Company, Research, Message, AgentLog
-from tools.unipile_client import send_linkedin_message, send_linkedin_invite, send_email
+from models import AgentLog, Company, Message, Research
+from tools.unipile_client import send_email, send_linkedin_invite, send_linkedin_message
 
 log = logging.getLogger(__name__)
 
@@ -27,13 +28,7 @@ class DeliveryResult:
 def _fallback_email(company: Company) -> str:
     """Derive a best-effort jobs@ address from the company website."""
     website = company.website or ""
-    domain = (
-        website.replace("https://", "")
-        .replace("http://", "")
-        .replace("www.", "")
-        .split("/")[0]
-        .strip()
-    )
+    domain = website.replace("https://", "").replace("http://", "").replace("www.", "").split("/")[0].strip()
     if not domain:
         domain = "example.com"
     return f"jobs@{domain}"
@@ -41,17 +36,13 @@ def _fallback_email(company: Company) -> str:
 
 async def send(company: Company, db: AsyncSession) -> DeliveryResult:
     message_result = await db.execute(
-        select(Message).where(
-            Message.company_id == company.id, Message.status == "approved"
-        )
+        select(Message).where(Message.company_id == company.id, Message.status == "approved")
     )
     message = message_result.scalar_one_or_none()
     if not message:
         raise ValueError(f"No approved message found for company {company.id}")
 
-    research_result = await db.execute(
-        select(Research).where(Research.company_id == company.id)
-    )
+    research_result = await db.execute(select(Research).where(Research.company_id == company.id))
     research = research_result.scalar_one_or_none()
 
     conversation_id = None
@@ -128,7 +119,7 @@ async def send(company: Company, db: AsyncSession) -> DeliveryResult:
         conversation_id = f"email:{recipient_email}"
 
     message.status = "sent"
-    message.sent_at = datetime.utcnow()
+    message.sent_at = datetime.now(timezone.utc)
     message.conversation_id = conversation_id
 
     entry = AgentLog(
@@ -140,6 +131,4 @@ async def send(company: Company, db: AsyncSession) -> DeliveryResult:
     db.add(entry)
     await db.commit()
 
-    return DeliveryResult(
-        channel=message.channel, conversation_id=conversation_id or ""
-    )
+    return DeliveryResult(channel=message.channel, conversation_id=conversation_id or "")

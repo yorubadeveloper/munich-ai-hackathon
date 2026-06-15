@@ -1,5 +1,5 @@
-import unittest
 import socket
+import unittest
 from unittest.mock import patch
 
 from tools.safe_http import (

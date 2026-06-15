@@ -4,10 +4,11 @@ The model is also synchronous under the hood, so each call is offloaded to a
 thread. All structured calls go through a defensive JSON extractor because LLMs
 occasionally wrap output in markdown fences or add stray prose.
 """
-import json
-import re
+
 import asyncio
+import json
 import logging
+import re
 
 import google.generativeai as genai
 
@@ -117,7 +118,6 @@ Return valid JSON only:
 """
 
 
-
 def _extract_json(text: str) -> dict:
     """Best-effort JSON extraction from an LLM response."""
     if not text:
@@ -159,14 +159,11 @@ async def _generate(prompt: str) -> str:
 async def synthesise_research(company_name: str, results: list[dict]) -> dict:
     content = "\n\n".join(
         [
-            f"Title: {r.get('title')}\nURL: {r.get('url')}\n"
-            f"Content: {r.get('content', '') or r.get('raw_content', '')}"
+            f"Title: {r.get('title')}\nURL: {r.get('url')}\nContent: {r.get('content', '') or r.get('raw_content', '')}"
             for r in results[:8]
         ]
     )
-    prompt = RESEARCH_SYNTHESIS_PROMPT.format(
-        company_name=company_name, results=content
-    )
+    prompt = RESEARCH_SYNTHESIS_PROMPT.format(company_name=company_name, results=content)
     text = await _generate(prompt)
     return _extract_json(text)
 
@@ -253,13 +250,10 @@ async def pick_best_contact(company_name: str, role: str, candidates: list[dict]
     if not candidates:
         return {}
     listing = "\n".join(
-        f"{i}. {c.get('name')} — {c.get('role') or c.get('headline')} "
-        f"({c.get('location') or 'location unknown'})"
+        f"{i}. {c.get('name')} — {c.get('role') or c.get('headline')} ({c.get('location') or 'location unknown'})"
         for i, c in enumerate(candidates)
     )
-    prompt = PICK_CONTACT_PROMPT.format(
-        role=role, company=company_name, candidates=listing
-    )
+    prompt = PICK_CONTACT_PROMPT.format(role=role, company=company_name, candidates=listing)
     parsed = _extract_json(await _generate(prompt))
     idx = parsed.get("index", -1)
     try:

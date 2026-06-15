@@ -5,10 +5,10 @@ from contextlib import asynccontextmanager
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 
-from database import init_db
-from api import companies, profile, run, log
-from tg.bot import start_bot
 from agents.followup import schedule_followup_checks
+from api import companies, dossier, log, profile, run
+from database import init_db
+from tg.bot import start_bot
 
 logging.basicConfig(level=logging.INFO)
 logger = logging.getLogger("huntagent")
@@ -19,20 +19,17 @@ async def resume_stuck_pipelines():
     On server boot, check for any companies stuck in active transient states
     (e.g., killed mid-execution by a server reload) and reset/re-spawn them.
     """
+    from sqlalchemy import select
+
+    from agents.orchestrator import run_pipeline
     from database import AsyncSessionLocal
     from models import Company
-    from sqlalchemy import select
-    from agents.orchestrator import run_pipeline
 
     await asyncio.sleep(2)  # wait for DB init and bot polling to start
     logger.info("Checking for orphaned/stuck pipelines on startup...")
 
     async with AsyncSessionLocal() as db:
-        res = await db.execute(
-            select(Company).where(
-                Company.status.in_(["researching", "drafting", "delivering"])
-            )
-        )
+        res = await db.execute(select(Company).where(Company.status.in_(["researching", "drafting", "delivering"])))
         stuck_companies = res.scalars().all()
         if not stuck_companies:
             logger.info("No stuck pipelines found. All clean.")
@@ -47,7 +44,7 @@ async def resume_stuck_pipelines():
                 c.status = "researched"
             elif c.status == "delivering":
                 c.status = "approved"
-            
+
             logger.info(f"Resetting '{c.name}': {old_status} -> {c.status}")
             await db.commit()
             asyncio.create_task(run_pipeline(str(c.id)))
@@ -78,6 +75,7 @@ app.add_middleware(
 )
 
 app.include_router(companies.router, prefix="/api")
+app.include_router(dossier.router, prefix="/api")
 app.include_router(profile.router, prefix="/api")
 app.include_router(run.router, prefix="/api")
 app.include_router(log.router, prefix="/api")
