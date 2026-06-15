@@ -8,7 +8,7 @@
 ## Milestone Registry
 - ✅ **M001-8itnlq:** Auditable Resource Dossier
 - 🔄 **M002-qqpa83:** Pioneer Evaluation and Model Quality
-- ⬜ **M003-n9ygqi:** M003-n9ygqi
+- ⬜ **M003-n9ygqi:** Creative Media and Submission Polish
 
 ## Recent Decisions
 - D005 (M001-8itnlq/S04): How to integrate fal.ai visual generation into the company research pipeline -> Fire-and-forget after research.run() with circuit-breaking (empty key check, try/except, 30s timeout), storing results as EvidenceEvents
