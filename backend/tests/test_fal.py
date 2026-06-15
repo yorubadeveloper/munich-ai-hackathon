@@ -1,3 +1,4 @@
+pytest_plugins = ("pytest_asyncio",)
 from unittest.mock import AsyncMock, patch
 
 import pytest

@@ -2,13 +2,13 @@
 
 **Active Milestone:** M003-n9ygqi: Creative Media and Submission Polish
 **Active Slice:** S04: Repo Hardening and Submission Docs
-**Phase:** evaluating-gates
+**Phase:** completed
 **Requirements Status:** 1 active · 1 validated · 0 deferred · 0 out of scope
 
 ## Milestone Registry
 - ✅ **M001-8itnlq:** Auditable Resource Dossier
 - ✅ **M002-qqpa83:** Pioneer Evaluation and Model Quality
-- 🔄 **M003-n9ygqi:** Creative Media and Submission Polish
+- ✅ **M003-n9ygqi:** Creative Media and Submission Polish
 
 ## Recent Decisions
 - D005 (M001-8itnlq/S04): How to integrate fal.ai visual generation into the company research pipeline -> Fire-and-forget after research.run() with circuit-breaking (empty key check, try/except, 30s timeout), storing results as EvidenceEvents
@@ -21,4 +21,4 @@
 - None
 
 ## Next Action
-Start S04: Repo Hardening and Submission Docs
+All milestones completed. Proceed to maintenance or new features as needed.

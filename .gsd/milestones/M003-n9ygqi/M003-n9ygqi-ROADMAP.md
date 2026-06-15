@@ -19,7 +19,7 @@
 - [x] **S03: Dashboard Dossier Visual Card UI** `risk:low` `depends:[S02]`
   > After this: Dashboard shows the generated visual card in the company dossier, or gracefully degrades when unavailable.
 
-- [ ] **S04: Repo Hardening and Submission Docs** `risk:low` `depends:[]`
+- [x] **S04: Repo Hardening and Submission Docs** `risk:low` `depends:[]`
   > After this: Repository contains required security and dependency configs, and documentation clearly outlines the submission narrative.
 
 ## Boundary Map

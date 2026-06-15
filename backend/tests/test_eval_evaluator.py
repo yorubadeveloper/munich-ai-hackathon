@@ -1,3 +1,4 @@
+pytest_plugins = ("pytest_asyncio",)
 import json
 from unittest.mock import patch
 

@@ -93,3 +93,12 @@ huntagent/
 - Tavily
 - Pioneer / GLiNER2
 - Aikido (connect repo for security scanning)
+
+## Submission Narrative
+HuntAgent tackles the problem of sending job applications into the void. Instead of manual search and generic cover letters, HuntAgent acts as a stateful multi-agent system. It discovers targeted companies, scores fit against your profile, drafts personalized outreach, and waits for a human approval via Telegram before delivering through LinkedIn or Email.
+
+**Key Hackathon Features:**
+1. **Auditable Dossiers:** All agent research (Tavily search, GLiNER2 entity extraction, Gemini reasoning) is logged as Evidence Events. The Next.js dashboard visualizes this "show-your-work" dossier so you understand *why* a company is recommended.
+2. **Pioneer Evaluation & Tuning:** Evaluates GLiNER2 entity extraction against Gemini baselines, featuring a dashboard visualization and conditional fine-tuning fallback if extraction falls below thresholds (the Fastino side challenge).
+3. **Creative Visuals:** Leverages fal.ai to generate a shareable "opportunity card" representing the role and fit aesthetically.
+4. **Human-in-the-Loop:** Complete orchestration pause/resume powered by Telegram approvals, ensuring safety and precision.
