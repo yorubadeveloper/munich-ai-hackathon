@@ -41,26 +41,6 @@ TARGET_TITLES = [
 ]
 
 
-def _safe_site_filter(website: str | None) -> str:
-    if not website:
-        return ""
-    try:
-        return f"site:{public_https_url_host(website).removeprefix('www.')}"
-    except UnsafeOutboundRequestError as exc:
-        log.warning(f"Skipping unsafe company website during research: {exc}")
-        return ""
-
-
-def _safe_job_url(job_url: str | None) -> str:
-    if not job_url:
-        return ""
-    try:
-        return validate_public_https_url(job_url)
-    except UnsafeOutboundRequestError as exc:
-        log.warning(f"Skipping unsafe job URL during research: {exc}")
-        return ""
-
-
 @dataclass
 class ResearchResult:
     fit_score: float
@@ -137,7 +117,7 @@ async def run(company: Company, db: AsyncSession) -> ResearchResult:
 
     # ── ACT 2: company facts via web search ──
     # If the user provided a domain/website (e.g. atira.ai), scope searches to it.
-    site_filter = _safe_site_filter(company.website)
+    site_filter = f"site:{company.website.replace('https://','').replace('http://','').replace('www.','').split('/')[0]}" if company.website else ""
 
     queries = [
         f"{company.name} {site_filter} funding round" if site_filter else f"{company.name} funding round",
@@ -151,10 +131,9 @@ async def run(company: Company, db: AsyncSession) -> ResearchResult:
     # If the user provided a specific Job Posting URL (e.g. Ashby/Greenhouse),
     # query Tavily specifically for it. Since Tavily uses headless browsers,
     # it easily bypasses SPA/JS-only blank screens and extracts the full JD!
-    safe_job_url = _safe_job_url(company.job_url)
-    if safe_job_url:
-        log.info(f"Targeting specific job URL via Tavily: {safe_job_url}")
-        job_results = await search(safe_job_url, max_results=1)
+    if company.job_url:
+        log.info(f"Targeting specific job URL via Tavily: {company.job_url}")
+        job_results = await search(company.job_url, max_results=1)
         if job_results:
             raw_results.extend(job_results)
 

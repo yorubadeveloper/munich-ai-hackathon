@@ -1,0 +1,13 @@
+# Aikido configuration file to resolve license compliance issues
+version: 1
+
+licenses:
+  # Allow Mozilla Public License 2.0 (MPL-2.0) for third-party libraries (tqdm, certifi)
+  # which are standard, unmodified dependencies.
+  allowed:
+    - "MPL-2.0"
+  
+  # Explicit package exceptions for license compliance checks
+  exceptions:
+    - "tqdm"
+    - "certifi"

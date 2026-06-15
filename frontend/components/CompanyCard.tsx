@@ -1,6 +1,6 @@
 'use client'
 import { useState } from 'react'
-import { UserCircle, LinkedinLogo, ArrowClockwise, CircleNotch, Trash, ArrowRight } from '@phosphor-icons/react'
+import { UserCircle, LinkedinLogo, ArrowClockwise, CircleNotch, Trash, EnvelopeSimple, CaretDown, ArrowRight } from '@phosphor-icons/react'
 import StatusBadge from './StatusBadge'
 import { rerunResearch, deleteCompany } from '@/lib/api'
 import type { Company } from '@/lib/api'
@@ -59,6 +59,7 @@ export default function CompanyCard({
   const [rerunning, setRerunning] = useState(false)
   const [confirmDelete, setConfirmDelete] = useState(false)
   const [deleting, setDeleting] = useState(false)
+  const [showDraft, setShowDraft] = useState(false)
 
   const canRerun = ['discovered', 'skipped_low_fit', 'skipped_by_user'].includes(
     company.status
@@ -237,6 +238,80 @@ export default function CompanyCard({
                 {t}
               </span>
             ))}
+          </div>
+        )}
+
+        {company.draft && company.draft.body && (
+          <div style={{ marginTop: 10 }}>
+            <button
+              onClick={(e) => {
+                e.stopPropagation()
+                setShowDraft((s) => !s)
+              }}
+              style={{
+                display: 'inline-flex',
+                alignItems: 'center',
+                gap: 6,
+                background: 'transparent',
+                border: 'none',
+                padding: 0,
+                cursor: 'pointer',
+                fontSize: 12,
+                fontWeight: 700,
+                color: 'var(--ink)',
+              }}
+            >
+              {company.draft.channel === 'email' ? (
+                <EnvelopeSimple size={13} weight="bold" />
+              ) : (
+                <LinkedinLogo size={13} weight="bold" />
+              )}
+              {showDraft ? 'Hide draft' : 'View draft'}
+              <CaretDown
+                size={11}
+                weight="bold"
+                style={{
+                  transform: showDraft ? 'rotate(180deg)' : 'none',
+                  transition: 'transform 0.15s',
+                }}
+              />
+            </button>
+
+            {showDraft && (
+              <div
+                onClick={(e) => e.stopPropagation()}
+                style={{
+                  marginTop: 8,
+                  padding: '12px 14px',
+                  background: 'var(--bg-2)',
+                  border: '1px solid var(--border)',
+                  borderRadius: 10,
+                  fontSize: 12.5,
+                  lineHeight: 1.55,
+                  color: 'var(--text)',
+                }}
+              >
+                <div
+                  style={{
+                    fontSize: 10.5,
+                    fontWeight: 700,
+                    letterSpacing: '0.06em',
+                    textTransform: 'uppercase',
+                    color: 'var(--muted)',
+                    marginBottom: 8,
+                  }}
+                >
+                  {company.draft.channel === 'email' ? 'Email draft' : 'LinkedIn draft'}
+                </div>
+                {company.draft.subject && (
+                  <div style={{ marginBottom: 8 }}>
+                    <span style={{ color: 'var(--muted)' }}>Subject: </span>
+                    <span style={{ fontWeight: 600 }}>{company.draft.subject}</span>
+                  </div>
+                )}
+                <div style={{ whiteSpace: 'pre-wrap' }}>{company.draft.body}</div>
+              </div>
+            )}
           </div>
         )}
 

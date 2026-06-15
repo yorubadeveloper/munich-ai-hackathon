@@ -112,6 +112,19 @@ async def run_pipeline(company_id: str):
                     await log_action(db, "orchestrator", "delivering message", company_id=company.id)
 
                     result = await delivery.send(company, db)
+
+                    # LinkedIn fully failed — delivery reset the company to
+                    # 'researched' to re-draft an email for approval. Loop again.
+                    if getattr(result, "fallback_to_email", False):
+                        await db.refresh(company)
+                        await log_action(
+                            db,
+                            "orchestrator",
+                            "LinkedIn failed — drafting email for approval",
+                            company_id=company.id,
+                        )
+                        continue
+
                     company.status = "sent"
                     await db.commit()
                     await log_action(

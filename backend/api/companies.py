@@ -3,7 +3,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from database import get_db
-from models import Company, Research
+from models import Company, Research, Message
 
 router = APIRouter()
 
@@ -16,6 +16,15 @@ async def get_companies(db: AsyncSession = Depends(get_db)):
     for c in companies:
         research_result = await db.execute(select(Research).where(Research.company_id == c.id))
         research = research_result.scalar_one_or_none()
+
+        # Latest message draft for this company (so it shows on the dashboard).
+        msg_result = await db.execute(
+            select(Message)
+            .where(Message.company_id == c.id)
+            .order_by(Message.id.desc())
+        )
+        message = msg_result.scalars().first()
+
         out.append(
             {
                 "id": str(c.id),
@@ -31,6 +40,16 @@ async def get_companies(db: AsyncSession = Depends(get_db)):
                 "hiring_manager_linkedin": research.hiring_manager_linkedin if research else None,
                 "recent_news": research.recent_news if research else None,
                 "fit_reasoning": research.fit_reasoning if research else None,
+                "draft": (
+                    {
+                        "channel": message.channel,
+                        "subject": message.subject,
+                        "body": message.final_body or message.draft_body,
+                        "status": message.status,
+                    }
+                    if message
+                    else None
+                ),
             }
         )
     return out

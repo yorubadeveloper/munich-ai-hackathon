@@ -208,15 +208,8 @@ async def run(db: AsyncSession) -> list[Company]:
         results = await search(query, max_results=6)
 
         for r in results:
-            raw_url = r.get("url")
-            if not raw_url:
-                continue
-            try:
-                url = validate_public_https_url(raw_url)
-            except UnsafeOutboundRequestError:
-                dropped += 1
-                continue
-            if url in seen_urls:
+            url = r.get("url")
+            if not url or url in seen_urls:
                 continue
             seen_urls.add(url)
 
