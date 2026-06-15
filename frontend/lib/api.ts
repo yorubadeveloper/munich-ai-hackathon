@@ -50,6 +50,12 @@ export type Company = {
   funding_stage?: string | null
   created_at?: string
   discovered_at?: string
+  draft?: {
+    channel: string
+    subject?: string | null
+    body?: string | null
+    status: string
+  } | null
 }
 
 export type AgentLog = {

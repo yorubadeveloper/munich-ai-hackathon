@@ -1,13 +1,12 @@
 import asyncio
 
-from fastapi import APIRouter, HTTPException
+from fastapi import APIRouter
 from pydantic import BaseModel
 from sqlalchemy import select
 
 from agents.orchestrator import run_discovery, run_pipeline
 from database import AsyncSessionLocal
 from models import AgentLog, Company, Research
-from tools.safe_http import UnsafeOutboundRequestError, normalize_public_https_url
 
 router = APIRouter()
 

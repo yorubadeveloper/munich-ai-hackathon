@@ -16,7 +16,6 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from models import AgentLog, Company, UserProfile
 from tools.gemini_client import check_relevance
 from tools.gliner_client import extract_job_entities
-from tools.safe_http import UnsafeOutboundRequestError, validate_public_https_url
 from tools.tavily_client import search
 
 log = logging.getLogger(__name__)

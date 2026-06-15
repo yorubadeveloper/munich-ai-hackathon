@@ -13,7 +13,7 @@ from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from models import AgentLog, Company, Message, Research
-from tools.unipile_client import send_email, send_linkedin_message, send_linkedin_invite
+from tools.unipile_client import send_email, send_linkedin_invite, send_linkedin_message
 
 log = logging.getLogger(__name__)
 
