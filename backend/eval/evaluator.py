@@ -139,6 +139,10 @@ async def run_evaluation(data_path: str) -> EvalResult:
     with open(metrics_path, "w", encoding="utf-8") as f:
         f.write(eval_result.model_dump_json(indent=2))
 
+    # Persist the evaluation result to the database
+    from eval.persist import save_evaluation_to_db
+    await save_evaluation_to_db(eval_result)
+
     # Run finetuning pipeline
     from eval.finetune import run_finetuning_pipeline
     await run_finetuning_pipeline(eval_result)

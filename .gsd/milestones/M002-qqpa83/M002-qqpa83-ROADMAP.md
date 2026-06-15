@@ -18,7 +18,7 @@
 - [x] **S02: Pioneer Training Integration and Conditional Fine-Tuning** `risk:high` `depends:[S01]`
   > After this: After this, the evaluator conditionally triggers Pioneer fine-tuning when mean F1 < 80%. If the training API is unavailable, the pipeline logs the failure and continues with base model results. Pytest proves the conditional logic and graceful degradation.
 
-- [ ] **S03: Evaluation Persistence and Visual Comparison Chart** `risk:low` `depends:[S01,S02]`
+- [x] **S03: Evaluation Persistence and Visual Comparison Chart** `risk:low` `depends:[S01,S02]`
   > After this: After this, evaluation results are saved as pioneer-eval evidence events in PostgreSQL. The Next.js company dossier renders a Recharts BarChart showing per-label F1 scores for Pioneer vs Gemini. npm run typecheck and npm run lint pass.
 
 ## Boundary Map
