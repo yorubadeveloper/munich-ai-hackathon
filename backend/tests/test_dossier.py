@@ -1,4 +1,3 @@
-pytest_plugins = ("pytest_asyncio",)
 import pytest
 from fastapi import FastAPI
 from httpx import AsyncClient

@@ -1,12 +1,9 @@
-pytest_plugins = ("pytest_asyncio",)
 import json
 from unittest.mock import patch
 
 import pytest
 
 from eval.evaluator import EvalResult, run_evaluation
-
-pytest_plugins = ("pytest_asyncio",)
 
 
 @pytest.fixture

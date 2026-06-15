@@ -1,4 +1,3 @@
-pytest_plugins = ("pytest_asyncio",)
 import uuid
 from unittest.mock import AsyncMock, patch
 
