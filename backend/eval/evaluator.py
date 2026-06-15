@@ -8,7 +8,7 @@ from typing import Dict
 
 from pydantic import BaseModel
 
-sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), '..')))
+sys.path.insert(0, os.path.abspath(os.path.join(os.path.dirname(__file__), "..")))
 
 from eval.generator import SyntheticJobPosting
 from eval.metrics import compute_mean_f1, compute_per_label_f1
@@ -16,6 +16,7 @@ from tools.gemini_client import _extract_json, _generate
 from tools.gliner_client import JOB_ENTITY_LABELS, extract_job_entities
 
 log = logging.getLogger(__name__)
+
 
 class EvalResult(BaseModel):
     per_label_f1_pioneer: Dict[str, float]
@@ -43,6 +44,7 @@ If an entity is not found, map its label to an empty string "".
 Job Posting Text:
 {text}
 """
+
 
 async def extract_via_gemini(text: str) -> Dict[str, str]:
     try:
@@ -77,7 +79,12 @@ async def evaluate_posting(posting: SyntheticJobPosting) -> tuple[Dict[str, floa
 
 async def run_evaluation(data_path: str) -> EvalResult:
     try:
-        with open(data_path, 'r', encoding='utf-8') as f:
+        base_dir = os.path.join(os.path.dirname(__file__), "data")
+        base_real = os.path.realpath(base_dir)
+        target_real = os.path.realpath(data_path)
+        if os.path.commonpath([base_real, target_real]) != base_real:
+            raise ValueError("Invalid file path")
+        with open(target_real, "r", encoding="utf-8") as f:
             data = json.load(f)
             postings = [SyntheticJobPosting(**p) for p in data]
     except Exception as e:
@@ -118,7 +125,7 @@ async def run_evaluation(data_path: str) -> EvalResult:
         mean_f1_pioneer=mean_f1_pioneer,
         mean_f1_gemini=mean_f1_gemini,
         sample_count=sample_count,
-        fine_tuning_triggered=fine_tuning_triggered
+        fine_tuning_triggered=fine_tuning_triggered,
     )
 
     log.info("\nEvaluation Results:")
@@ -141,10 +148,12 @@ async def run_evaluation(data_path: str) -> EvalResult:
 
     # Persist the evaluation result to the database
     from eval.persist import save_evaluation_to_db
+
     await save_evaluation_to_db(eval_result)
 
     # Run finetuning pipeline
     from eval.finetune import run_finetuning_pipeline
+
     await run_finetuning_pipeline(eval_result)
 
     return eval_result

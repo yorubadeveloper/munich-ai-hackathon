@@ -1,4 +1,6 @@
 import json
+import os
+import uuid
 from unittest.mock import patch
 
 import pytest
@@ -7,7 +9,7 @@ from eval.evaluator import EvalResult, run_evaluation
 
 
 @pytest.fixture
-def synthetic_data_path(tmp_path):
+def synthetic_data_path():
     data = [
         {
             "text": "Seeking a Senior Go Engineer at TechCorp. Remote role. $150k.",
@@ -18,21 +20,27 @@ def synthetic_data_path(tmp_path):
                 "company_stage": "",
                 "hiring_manager": "",
                 "salary": "$150k",
-                "remote_policy": "Remote"
-            }
+                "remote_policy": "Remote",
+            },
         }
     ]
-    filepath = tmp_path / "test_data.json"
+    eval_data_dir = os.path.join(os.path.dirname(os.path.dirname(__file__)), "eval", "data")
+    os.makedirs(eval_data_dir, exist_ok=True)
+    filename = f"test_data_{uuid.uuid4().hex}.json"
+    filepath = os.path.join(eval_data_dir, filename)
     with open(filepath, "w", encoding="utf-8") as f:
         json.dump(data, f)
-    return str(filepath)
+    yield filepath
+    if os.path.exists(filepath):
+        os.remove(filepath)
 
 
 @pytest.mark.asyncio
 async def test_run_evaluation(synthetic_data_path):
-    with patch("eval.evaluator.extract_job_entities") as mock_pioneer, \
-         patch("eval.evaluator.extract_via_gemini") as mock_gemini:
-
+    with (
+        patch("eval.evaluator.extract_job_entities") as mock_pioneer,
+        patch("eval.evaluator.extract_via_gemini") as mock_gemini,
+    ):
         # Pioneer gets everything perfectly
         mock_pioneer.return_value = {
             "company_name": "TechCorp",
@@ -41,7 +49,7 @@ async def test_run_evaluation(synthetic_data_path):
             "company_stage": "",
             "hiring_manager": "",
             "salary": "$150k",
-            "remote_policy": "Remote"
+            "remote_policy": "Remote",
         }
 
         # Gemini gets title wrong and misses salary
@@ -52,7 +60,7 @@ async def test_run_evaluation(synthetic_data_path):
             "company_stage": "",
             "hiring_manager": "",
             "salary": "",
-            "remote_policy": "Remote"
+            "remote_policy": "Remote",
         }
 
         result = await run_evaluation(synthetic_data_path)
