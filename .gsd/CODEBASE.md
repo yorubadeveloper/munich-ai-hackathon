@@ -1,7 +1,7 @@
 # Codebase Map
 
-Generated: 2026-06-14T10:04:42Z | Files: 75 | Described: 0/75
-<!-- gsd:codebase-meta {"generatedAt":"2026-06-14T10:04:42Z","fingerprint":"d140e9fa6090841806a7d6ecad1ef8de1c122f46","fileCount":75,"truncated":false} -->
+Generated: 2026-06-14T23:36:21Z | Files: 84 | Described: 0/84
+<!-- gsd:codebase-meta {"generatedAt":"2026-06-14T23:36:21Z","fingerprint":"1332f5eba9cbae39961e222e95ecb8825d7afe5f","fileCount":84,"truncated":false} -->
 
 ### (root)/
 - `.env.example`
@@ -53,10 +53,15 @@ Generated: 2026-06-14T10:04:42Z | Files: 75 | Described: 0/75
 - `backend/schemas/dossier.py`
 - `backend/schemas/evidence.py`
 
+### backend/scripts/
+- `backend/scripts/seed_demo_dossier.py`
+
 ### backend/tests/
 - `backend/tests/conftest.py`
 - `backend/tests/test_dossier.py`
 - `backend/tests/test_evidence.py`
+- `backend/tests/test_fal_client.py`
+- `backend/tests/test_fal.py`
 - `backend/tests/test_safe_http.py`
 - `backend/tests/test_tavily_client.py`
 
@@ -69,6 +74,7 @@ Generated: 2026-06-14T10:04:42Z | Files: 75 | Described: 0/75
 
 ### backend/tools/
 - `backend/tools/__init__.py`
+- `backend/tools/fal_client.py`
 - `backend/tools/gemini_client.py`
 - `backend/tools/gliner_client.py`
 - `backend/tools/safe_http.py`
@@ -95,6 +101,9 @@ Generated: 2026-06-14T10:04:42Z | Files: 75 | Described: 0/75
 - `frontend/app/layout.tsx`
 - `frontend/app/page.tsx`
 
+### frontend/app/companies/[id]/
+- `frontend/app/companies/[id]/page.tsx`
+
 ### frontend/app/dashboard/
 - `frontend/app/dashboard/page.tsx`
 
@@ -104,9 +113,13 @@ Generated: 2026-06-14T10:04:42Z | Files: 75 | Described: 0/75
 ### frontend/components/
 - `frontend/components/ActivityFeed.tsx`
 - `frontend/components/AddCompany.tsx`
+- `frontend/components/ApprovalActions.tsx`
 - `frontend/components/CompanyCard.tsx`
 - `frontend/components/Lottie.tsx`
+- `frontend/components/OptionalVisualDossier.tsx`
 - `frontend/components/PipelineBoard.tsx`
+- `frontend/components/ResourceChart.tsx`
+- `frontend/components/ResourceChartInner.tsx`
 - `frontend/components/StatBar.tsx`
 - `frontend/components/StatusBadge.tsx`
 

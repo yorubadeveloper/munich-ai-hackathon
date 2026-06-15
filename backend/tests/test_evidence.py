@@ -17,7 +17,7 @@ def test_evidence_event_create_valid():
         company_id=uuid.uuid4(),
         resource_name=ResourceName.TAVILY,
         artifact_type=ArtifactType.SOURCE,
-        payload={"key": "value"}
+        payload={"key": "value"},
     )
     assert event.resource_name == ResourceName.TAVILY
     assert event.artifact_type == ArtifactType.SOURCE
@@ -29,20 +29,14 @@ def test_evidence_event_create_valid():
 def test_evidence_event_create_invalid_resource():
     with pytest.raises(ValidationError):
         EvidenceEventCreate(
-            company_id=uuid.uuid4(),
-            resource_name="InvalidResource",
-            artifact_type=ArtifactType.SOURCE,
-            payload={}
+            company_id=uuid.uuid4(), resource_name="InvalidResource", artifact_type=ArtifactType.SOURCE, payload={}
         )
 
 
 def test_evidence_event_create_invalid_artifact():
     with pytest.raises(ValidationError):
         EvidenceEventCreate(
-            company_id=uuid.uuid4(),
-            resource_name=ResourceName.TAVILY,
-            artifact_type="invalid_artifact",
-            payload={}
+            company_id=uuid.uuid4(), resource_name=ResourceName.TAVILY, artifact_type="invalid_artifact", payload={}
         )
 
 

@@ -214,3 +214,27 @@ export async function saveProfile(data: ProfilePayload) {
   })
   return res.json()
 }
+
+export async function approveCompany(companyId: string): Promise<{ status: string }> {
+  try {
+    const res = await fetch(`${BASE}/api/companies/${companyId}/approve`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    return res.json()
+  } catch {
+    return { status: 'error' }
+  }
+}
+
+export async function rejectCompany(companyId: string): Promise<{ status: string }> {
+  try {
+    const res = await fetch(`${BASE}/api/companies/${companyId}/reject`, {
+      method: 'PATCH',
+      headers: { 'Content-Type': 'application/json' },
+    })
+    return res.json()
+  } catch {
+    return { status: 'error' }
+  }
+}

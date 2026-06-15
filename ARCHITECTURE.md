@@ -87,7 +87,7 @@ corrupting the others.
 | ORM | SQLAlchemy (async) | 2.0.50 |
 | DB driver | asyncpg | 0.31.0 |
 | Database | PostgreSQL | 15 |
-| LLM | Google Gemini (`gemini-2.5-flash`, configurable) | SDK 0.7.0 |
+| LLM | Google Gemini (`gemini-3.5-flash`, configurable) | SDK 0.7.0 |
 | Web search | Tavily | 0.3.3 |
 | Entity extraction | GLiNER2 via Pioneer inference API | — |
 | Outreach delivery | Unipile (LinkedIn DM) · Resend (email) | — |

@@ -1,28 +1,27 @@
 ---
-depends_on: [M001-8itnlq, M002-qqpa83]
+id: M003-n9ygqi
+status: ready
 ---
 
 # M003-n9ygqi: Creative Media and Submission Polish
 
-**Gathered:** 2026-06-14
+**Gathered:** 2026-06-15
 **Status:** Ready for planning
 
 ## Project Description
 
-M003 turns fal from an optional visual layer into a core generative media feature: visual opportunity dossier cards generated from the evidence trail and displayed in the dashboard. It also adds lightweight repo hardening (security policy, dependency review, Dependabot, docs drift fixes) and packages the full hackathon resource narrative for submission. This milestone explicitly targets the fal side challenge ($1000 fal credits).
-
-Aikido is already connected to the repository and checks every PR to main. No Aikido setup, scanning, or remediation work is needed in M003.
+M003 turns fal from an optional visual layer into a core generative media feature: visual opportunity dossier cards generated from the evidence trail and displayed in the dashboard. It also adds lightweight repo hardening (security policy, dependency review, Dependabot, docs drift fixes) and packages the full hackathon resource narrative for submission. This milestone explicitly targets the fal side challenge ($1000 fal credits). Aikido is already connected to the repository and checks every PR to main. No Aikido setup, scanning, or remediation work is needed in M003.
 
 ## Why This Milestone
 
-The fal side challenge requires generative media as a main feature, not a footnote or plain LLM endpoint. M001 made fal optional/additive; M003 promotes it to a core feature by generating visual opportunity cards from structured evidence. The submission narrative needs all hackathon resources visibly contributing: Tavily scouts, Pioneer extracts, Gemini reasons, fal visualizes, Aikido secures, and Telegram gates.
+The fal side challenge requires generative media as a main feature, not a footnote or plain LLM endpoint. Promoting fal to automatically generate a judge-readable visual opportunity card after research completes ensures it is a core feature. The submission narrative needs all hackathon resources visibly contributing.
 
 ## User-Visible Outcome
 
 ### When this milestone is complete, the user can:
 
-- See a fal-generated visual opportunity dossier card for each company in the dashboard dossier.
-- Share or inspect the visual card as a summary of the company opportunity (name, role, key facts, fit score, outreach angle).
+- See an automatically generated fal visual opportunity dossier card for each company in the dashboard dossier, acting as a clean summary of company, role, fit, key facts, and outreach angle.
+- Rely on the dossier degrading quietly and remaining usable with a calm "Visual card unavailable" status if fal is slow, missing a key, or fails.
 - Trust that the repo has basic security policy files and dependency review practices.
 - Read a clear submission narrative explaining each resource's role in the system.
 
@@ -34,101 +33,88 @@ The fal side challenge requires generative media as a main feature, not a footno
 
 ## Completion Class
 
-- Contract complete means: fal client generates visual cards from evidence data, with pytest coverage using mocked fal responses. Hardening files exist.
-- Integration complete means: generated cards are stored as evidence events and visible in the dashboard dossier.
-- Operational complete means: fal unavailability is handled gracefully via circuit breaker; the dossier works without the visual card.
+- Contract complete means: fal client generates visual cards from evidence data, mocked fal backend tests pass, and hardening files exist.
+- Integration complete means: generated cards are automatically stored as evidence events (URL reused per company to save credits) and visible in the dashboard dossier without breaking the flow.
+- Operational complete means: fal unavailability is handled gracefully via circuit breaker; the dossier works quietly without the visual card.
 
 ## Final Integrated Acceptance
 
 To call this milestone complete, we must prove:
 
-- fal generates a visual opportunity dossier card from structured evidence trail data using Flux.1.
-- The card is visible in the dashboard company dossier, with the image URL stored in PostgreSQL.
-- fal failure does not block the core dossier or approval flow.
+- A seeded/demo company dossier shows the fal card in the browser (Browser dossier proof).
+- fal failure does not block the core dossier or approval flow, showing quiet degraded status.
+- Card generation happens automatically after research, but only once per company (reusing the stored URL) unless explicitly regenerated, conserving credits.
 - SECURITY.md, Dependabot config, and dependency-review workflow are present.
 - README version drift is fixed.
 - The submission narrative accurately describes each resource's role.
-- The fal integration is substantial enough for the fal side challenge (generative media as a core feature).
+- Frontend lint and typechecks pass.
 
 ## Architectural Decisions
 
-### fal client as backend tool
+### Auto-generation and Core Feature Shape
 
-**Decision:** Add `backend/tools/fal_client.py` following the same pattern as `gemini_client.py` and `gliner_client.py`.
+**Decision:** Generate the card automatically after evidence exists, store it as a fal evidence event, and render it in the dossier by default.
 
-**Rationale:** Consistency with existing tool conventions. Backend generation keeps the frontend a consumer. Circuit breaker pattern handles API unavailability gracefully.
-
-**Alternatives Considered:**
-- Frontend-side generation — violates the backend-owns-resources pattern and complicates credential management.
-- Batch script — disconnected from the evidence pipeline.
-
-### Visual opportunity dossier card as the fal feature
-
-**Decision:** Generate a visual summary card showing company name, role, key facts, fit score, and outreach angle from evidence trail data.
-
-**Rationale:** This is the most natural creative use of fal within HuntAgent: turning structured evidence into a visual artifact. It meets the side challenge criteria (generative media as core feature) without overreaching into video/audio.
+**Rationale:** This creates the strongest "core feature" story for the side challenge. If fal fails, the dossier still works with an honest status.
 
 **Alternatives Considered:**
-- Video summaries — higher novelty but much higher complexity and latency.
-- Audio narration — less visual impact for a dashboard product.
+- Generate on demand — More control and fewer credits, but feels slightly less automatic/core.
+- Demo-only golden path — Lower implementation risk, but may feel bolted-on.
 
-### Fal Model Selection
+### Card Usage Optimization
 
-**Decision:** Use Flux.1 for generating the visual dossier cards.
+**Decision:** Prioritize a clean, instantly understandable, judge-readable card that summarizes company, role, fit, key facts, and outreach angle.
 
-**Rationale:** Flux.1 offers high quality, handles text well, and is great for structured dossier cards.
-
-**Alternatives Considered:**
-- SDXL / SD3 — fast and reliable, but text rendering may be less optimal for data-heavy cards.
-
-### Card Visual Style
-
-**Decision:** Style the cards as a "Modern Tech Dossier".
-
-**Rationale:** Clean typography and a dashboard-native look ensure the card is easy to read and fits seamlessly into the existing Next.js frontend.
+**Rationale:** This directly answers "Who is this company?", "Why is it a fit?", and "What did the agent learn?", providing immediate value in the dossier.
 
 **Alternatives Considered:**
-- Minimalist Data Summary or Cyberpunk/Retro — rejected in favor of a clean, modern aesthetic.
+- Shareable artifact — More emphasis on layout and aesthetics, less dense dashboard text.
+- Evidence companion — Emphasizing provenance/resource labels and confidence.
 
-### Image Storage Strategy
+### Failure UX
 
-**Decision:** Store the image URL provided by fal directly in the database.
+**Decision:** Show a quiet degraded status in the dossier if fal fails, is missing a key, or is slow.
 
-**Rationale:** This is the simplest implementation and efficiently manages fal credits without needing complex file downloading and local storage overhead.
-
-**Alternatives Considered:**
-- Download and store locally — safer against URL expiration but adds complexity.
-- Re-generate on demand — risks exhausting the $25 credit voucher.
-
-### Aikido removed from M003 scope
-
-**Decision:** No Aikido work in M003. Aikido is already connected to the repository and checks every PR to main.
-
-**Rationale:** User confirmed Aikido is operational. Adding redundant setup would waste effort.
-
-### Lightweight hardening before submission
-
-**Decision:** Add SECURITY.md, CONTRIBUTING.md, LICENSE, Dependabot config, dependency-review action, and fix README version drift.
-
-**Rationale:** These are low-effort improvements that directly improve repo maturity and are visible to any reviewer. They do not depend on Aikido.
+**Rationale:** The evidence trail and approval flow remain usable. The card slot displays a calm note like "Visual card unavailable" or "Generating visual card". This matches the prior non-blocking fal decision.
 
 **Alternatives Considered:**
-- Defer entirely — cheap improvements left on the table.
+- Prominent retry action — Clear "Generate again" action, but slightly more UI/backend state scope.
+- Hide failed card — Cleanest UI, but risks fal contribution disappearing from the visible product story.
+
+### Credit Control
+
+**Decision:** Generate once per company automatically, reuse the stored URL, and require explicit refresh for regeneration.
+
+**Rationale:** Avoids burning through the $25 fal voucher while still making cards feel automatic.
+
+**Alternatives Considered:**
+- Demo allowlist — Auto only for seeded/flagged companies; strong demo safety but weaker "core feature" feel.
+- Every research refresh — Freshest visual summary, but highest cost and latency risk.
+
+### Milestone Scope Priority
+
+**Decision:** Protect the fal side challenge implementation (visual-card generation, evidence persistence, dashboard display path, graceful fallback) above repo hardening extras if time gets tight.
+
+**Rationale:** The fal integration is the primary differentiator for this side challenge.
+
+**Alternatives Considered:**
+- Submission package — Strong docs/screenshots, but may reduce feature depth.
+- Repo hardening — Trustworthy repo hygiene, but less distinctive.
 
 ## Error Handling Strategy
 
-- fal API unavailable → circuit breaker trips (same pattern as `gliner_client.py`); dossier works without the visual card; failure state shown honestly in the dossier.
+- fal API unavailable → circuit breaker trips (same pattern as gliner_client.py); dossier works without the visual card, showing quiet degraded status.
 - Card generation produces unexpected output → log and skip; never block core dossier or approval.
-- `FAL_API_KEY` not configured → graceful skip, card generation disabled, dossier remains functional.
+- FAL_API_KEY not configured → graceful skip, card generation disabled, dossier remains functional.
 - Hardening files are static additions — no runtime error surface.
 - Demo narrative is documentation — no failure mode.
 
 ## Risks and Unknowns
 
-- fal API stability and latency for image generation — could affect demo reliability.
-- Card visual quality depends on prompt engineering and fal model capabilities — may need iteration.
-- fal credits budget ($25 voucher) — generation should be efficient enough to avoid exhausting credits during development/demo.
-- Side challenge judges may interpret "core feature" strictly — the card must be clearly integrated into the product flow, not a bolted-on demo.
+- fal API stability and latency for image generation — mitigated by quiet degraded status.
+- Card visual quality depends on prompt engineering and fal model capabilities — mitigated by focusing on a judge-readable summary layout.
+- fal credits budget ($25 voucher) — mitigated by generate-once-per-company policy.
+- Side challenge judges may interpret "core feature" strictly — mitigated by automatic post-research generation and dossier integration.
 
 ## Existing Codebase / Prior Art
 
@@ -153,7 +139,10 @@ To call this milestone complete, we must prove:
 
 - `backend/tools/fal_client.py` with circuit breaker and `FAL_API_KEY` config.
 - Visual opportunity dossier card generation from evidence trail data using Flux.1.
+- Auto-trigger card generation after research completes.
+- Ensure generation happens only once per company (reuse URL).
 - Card URL stored as evidence event (resource: `fal`) and displayed in dashboard dossier.
+- Quiet degraded status UI for fal failures.
 - SECURITY.md, CONTRIBUTING.md, LICENSE if missing.
 - Dependabot config for Python and Node.
 - dependency-review GitHub Action.
@@ -198,13 +187,10 @@ To call this milestone complete, we must prove:
 
 ## Acceptance Criteria
 
-- fal client generates a visual opportunity card from evidence trail data using Flux.1.
-- Generated card is stored as an evidence event (URL) and displayed in the dashboard dossier.
-- fal failure is non-blocking: dossier works without the visual card.
-- SECURITY.md, Dependabot config, and dependency-review workflow are present.
-- README version references match actual dependencies.
-- Submission narrative describes each resource's role accurately.
-- fal integration is substantial enough for the side challenge: generative media as a core feature.
+- fal generates a visual opportunity card automatically after company evidence exists and stores/reuses one URL per company.
+- The dashboard dossier renders the judge-readable card and quietly degrades when fal is missing, slow, or unavailable.
+- Browser dossier proof, mocked backend tests, frontend lint/typecheck, and submission docs verify the feature.
+- Lightweight hardening and submission narrative are completed without adding Aikido setup scope.
 
 ## Open Questions
 

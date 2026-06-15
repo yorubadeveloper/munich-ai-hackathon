@@ -3,6 +3,7 @@ Tavily search client.
 Tavily's SDK is synchronous, so we run it in a thread to avoid blocking the
 asyncio event loop.
 """
+
 import asyncio
 import logging
 

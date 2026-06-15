@@ -7,10 +7,17 @@ custom_instructions:
   - but this is only for the backend project
   - also we would need corresponding tests of the frontend and also linters from there
 git:
-  isolation: none
-  main_branch: main
   auto_push: false
+  main_branch: main
+  isolation: none
 token_profile: burn-max
+parallel:
+  enabled: true
+  merge_strategy: per-slice
+  auto_merge: auto
+  worker_model: proxy-local/claude-opus-4-7
+slice_parallel:
+  enabled: true
 verification_commands:
   - pytest
 ---

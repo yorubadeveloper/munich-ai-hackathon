@@ -17,6 +17,7 @@ dependencies = [
     "tavily-python==0.3.3",
     "python-dotenv==1.0.1",
     "apscheduler==3.10.4",
+    "fal-client>=0.5.0",
 ]
 
 [dependency-groups]
@@ -39,3 +40,11 @@ ignore = ["E501"]
 
 [tool.uv]
 package = false
+
+[tool.pytest.ini_options]
+# Put the backend root on sys.path so tests can import first-party modules
+# (e.g. `tests.fixtures`, `models`, `main`) under a plain `pytest` invocation.
+pythonpath = ["."]
+# Disable leaked ROS `pytest11` plugins that fail to import in this environment
+# (missing `lark`) when /opt/ros is on PYTHONPATH. They are unrelated to this project.
+addopts = "-p no:launch_testing -p no:launch_ros"

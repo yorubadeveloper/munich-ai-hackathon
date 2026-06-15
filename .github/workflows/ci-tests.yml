@@ -98,7 +98,7 @@ jobs:
           printf 'Selected backend test paths:\n'
           printf '  %s\n' "${TEST_PATHS[@]}"
           cd backend
-          PYTHONPATH="$PWD" PYTEST_DISABLE_PLUGIN_AUTOLOAD=1 uv run pytest "${PYTEST_PATHS[@]}" -q
+          PYTHONPATH="$PWD" uv run pytest "${PYTEST_PATHS[@]}" -q
 
   frontend-tests:
     name: Frontend Tests

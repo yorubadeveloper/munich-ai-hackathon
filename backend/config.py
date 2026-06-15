@@ -3,7 +3,7 @@ from pydantic_settings import BaseSettings
 
 class Settings(BaseSettings):
     gemini_api_key: str = ""
-    gemini_model: str = "gemini-2.5-flash"
+    gemini_model: str = "gemini-3.5-flash"
     tavily_api_key: str = ""
     unipile_api_key: str = ""
     unipile_account_id: str = ""
@@ -14,6 +14,7 @@ class Settings(BaseSettings):
     telegram_chat_id: str = ""
     pioneer_api_key: str = ""
     pioneer_model_id: str = ""
+    fal_key: str = ""
     database_url: str = "postgresql+asyncpg://postgres:postgres@localhost:5432/huntagent"
     sync_database_url: str = ""
 

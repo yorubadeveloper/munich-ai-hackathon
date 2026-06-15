@@ -1,9 +1,10 @@
 import { notFound } from 'next/navigation'
 import Link from 'next/link'
-import { ArrowLeft, Target, Buildings } from '@phosphor-icons/react/dist/ssr'
 import StatusBadge from '@/components/StatusBadge'
 import { getCompanyDossier } from '@/lib/api'
 import ResourceChart from '@/components/ResourceChart'
+import ApprovalActions from '@/components/ApprovalActions'
+import OptionalVisualDossier from '@/components/OptionalVisualDossier'
 
 type PageProps = {
   params: { id: string }
@@ -52,11 +53,11 @@ export default async function CompanyDossierPage({ params }: PageProps) {
               fontWeight: 500,
             }}
           >
-            <ArrowLeft size={15} weight="bold" />
+            <svg width="15" height="15" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round"><line x1="19" y1="12" x2="5" y2="12"></line><polyline points="12 19 5 12 12 5"></polyline></svg>
             Back
           </Link>
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginLeft: 16 }}>
-            <Target size={18} weight="fill" color="#1c1917" />
+            <svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><circle cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="2" fill="none"/><circle cx="12" cy="12" r="6" fill="currentColor"/><circle cx="12" cy="12" r="2" fill="currentColor"/></svg>
             <span style={{ fontWeight: 700, fontSize: 16, letterSpacing: '-0.02em' }}>
               Dossier
             </span>
@@ -92,7 +93,7 @@ export default async function CompanyDossierPage({ params }: PageProps) {
                 <div style={{ display: 'flex', gap: 12, color: 'var(--muted)', fontSize: 14 }}>
                   {dossier.website && (
                     <a href={dossier.website} target="_blank" rel="noreferrer" style={{ display: 'flex', alignItems: 'center', gap: 4 }}>
-                      <Buildings size={16} />
+                      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><rect x="4" y="2" width="16" height="20" rx="2" ry="2"></rect><line x1="9" y1="22" x2="9" y2="16"></line><line x1="15" y1="22" x2="15" y2="16"></line><line x1="9" y1="16" x2="15" y2="16"></line><path d="M8 6h.01M16 6h.01M8 10h.01M16 10h.01M12 6h.01M12 10h.01"></path></svg>
                       Website
                     </a>
                   )}
@@ -219,8 +220,12 @@ export default async function CompanyDossierPage({ params }: PageProps) {
                         Updated: {new Date(dossier.approval_state.updated_at).toLocaleString()}
                       </div>
                     )}
+                    <ApprovalActions companyId={dossier.id} approvalState={dossier.approval_state} />
                   </div>
                </section>
+
+               {/* Optional Visual Dossier Section */}
+               <OptionalVisualDossier events={dossier.evidence_events} />
 
                {/* Placeholders for visual charts */}
                <section>

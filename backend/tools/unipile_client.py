@@ -6,6 +6,7 @@ Handles LinkedIn DM sending and reply checking.
 Email delivery goes through Resend (https://resend.com) over its HTTP API,
 using the shared safe HTTP helper so no extra SDK/SMTP handling is needed.
 """
+
 import logging
 from urllib.parse import urlsplit
 
@@ -126,10 +127,7 @@ async def search_linkedin_people(
                 timeout=40,
             )
             if response.status_code >= 400:
-                log.warning(
-                    f"Unipile people search failed "
-                    f"({response.status_code}): {response.text[:300]}"
-                )
+                log.warning(f"Unipile people search failed ({response.status_code}): {response.text[:300]}")
                 return []
             items = response.json().get("items", [])
     except Exception as e:
@@ -198,10 +196,7 @@ async def send_email(to: str, subject: str, body: str) -> dict:
                 timeout=30,
             )
             if response.status_code >= 400:
-                log.warning(
-                    f"Resend email to {to} failed "
-                    f"({response.status_code}): {response.text[:300]}"
-                )
+                log.warning(f"Resend email to {to} failed ({response.status_code}): {response.text[:300]}")
                 response.raise_for_status()
             return response.json()
     except Exception as e:

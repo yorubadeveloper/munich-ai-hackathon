@@ -11,6 +11,7 @@ model id (e.g. "fastino/gliner2-base-v1") or your training job id (e.g.
 "job_abc123"). If no key/model is configured, extraction is skipped gracefully
 and the orchestrator falls back to other signals.
 """
+
 import logging
 
 from config import settings
@@ -18,9 +19,7 @@ from tools.safe_http import safe_async_client, validate_https_url
 
 log = logging.getLogger(__name__)
 
-PIONEER_INFERENCE_URL = validate_https_url(
-    "https://api.pioneer.ai/inference", {"api.pioneer.ai"}
-)
+PIONEER_INFERENCE_URL = validate_https_url("https://api.pioneer.ai/inference", {"api.pioneer.ai"})
 
 # Circuit breaker: once Pioneer rejects us for auth/billing reasons (401/403),
 # that will not change mid-run, so we stop calling it to avoid log spam and
@@ -139,10 +138,7 @@ async def extract_job_entities(text: str) -> dict:
                 )
                 return {}
             if response.status_code >= 400:
-                log.warning(
-                    f"Pioneer inference failed "
-                    f"({response.status_code}): {response.text[:300]}"
-                )
+                log.warning(f"Pioneer inference failed ({response.status_code}): {response.text[:300]}")
                 return {}
             return _parse_entities(response.json())
     except Exception as e:
