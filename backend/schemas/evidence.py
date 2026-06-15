@@ -20,6 +20,7 @@ class ArtifactType(str, Enum):
     REASONING = "reasoning"
     APPROVAL_STATE = "approval_state"
     VISUAL_ARTIFACT = "visual_artifact"
+    PIONEER_EVAL = "pioneer_eval"
 
 
 class EvidenceEventBase(BaseModel):
