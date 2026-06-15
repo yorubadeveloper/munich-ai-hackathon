@@ -32,7 +32,7 @@ async def test_get_dossier_success(
     mock_db = mocker.AsyncMock()
     mock_db.add = mocker.MagicMock()
 
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     # Mock Company
     mock_company = Company(
@@ -41,7 +41,7 @@ async def test_get_dossier_success(
         website="https://test.example.com",
         status="approved",
         fit_score=0.85,
-        discovered_at=datetime.utcnow(),
+        discovered_at=datetime.now(timezone.utc),
     )
     mock_db.get.return_value = mock_company
 
@@ -141,7 +141,7 @@ async def test_get_dossier_partial_failures_only(
     mock_db = mocker.AsyncMock()
     mock_db.add = mocker.MagicMock()
 
-    from datetime import datetime
+    from datetime import datetime, timezone
 
     # Mock Company
     mock_company = Company(
@@ -150,7 +150,7 @@ async def test_get_dossier_partial_failures_only(
         website="https://test.example.com",
         status="approved",
         fit_score=0.85,
-        discovered_at=datetime.utcnow(),
+        discovered_at=datetime.now(timezone.utc),
     )
     mock_db.get.return_value = mock_company
 

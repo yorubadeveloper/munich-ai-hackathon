@@ -10,6 +10,7 @@ from tests.fixtures.evidence import (
 
 pytest_plugins = [
     "pytest_mock",
+    "pytest_asyncio",
 ]
 
 __all__ = [

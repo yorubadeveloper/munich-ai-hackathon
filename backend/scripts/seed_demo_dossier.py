@@ -2,7 +2,7 @@ import asyncio
 import os
 import sys
 import uuid
-from datetime import datetime
+from datetime import datetime, timezone
 
 # Adjust sys.path so we can import from backend root
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -29,7 +29,7 @@ async def seed_company(
             job_url=job_url,
             status=status,
             fit_score=fit_score,
-            discovered_at=datetime.utcnow(),
+            discovered_at=datetime.now(timezone.utc),
         )
         session.add(company)
     await session.commit()
@@ -72,7 +72,7 @@ async def seed_research(
             hiring_manager_linkedin=hiring_manager_linkedin,
             hiring_manager_email=hiring_manager_email,
             fit_reasoning=fit_reasoning,
-            enriched_at=datetime.utcnow(),
+            enriched_at=datetime.now(timezone.utc),
         )
         session.add(research)
     await session.commit()
@@ -106,7 +106,7 @@ async def seed_evidence_event(
             payload=payload,
             status=status,
             error_context=error_context,
-            timestamp=datetime.utcnow(),
+            timestamp=datetime.now(timezone.utc),
         )
         session.add(event)
     await session.commit()
