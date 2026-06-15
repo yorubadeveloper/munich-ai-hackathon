@@ -4,7 +4,7 @@ estimated_files: 2
 skills_used: []
 ---
 
-# T01: Create synthetic data generator
+# T01: Built Synthetic Data Generator
 
 Create `backend/eval/__init__.py` and `backend/eval/generator.py`.
 

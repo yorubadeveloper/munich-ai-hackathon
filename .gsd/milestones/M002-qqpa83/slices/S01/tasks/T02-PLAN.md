@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T02: Implement F1 metric calculation module
+# T02: Built Base Evaluator Framework
 
 Create `backend/eval/metrics.py` with token-overlap F1 score calculation.
 

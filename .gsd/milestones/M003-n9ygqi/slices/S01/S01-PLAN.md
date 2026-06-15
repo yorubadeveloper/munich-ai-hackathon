@@ -22,12 +22,12 @@ S01 provides the tested fal client that S02 will call.
 
 ## Tasks
 
-- [x] **T01: Create robust fal client** `est:1h`
+- [x] **T01: Tested fal Client and Circuit Breaking** `est:1h`
   Create the base fal client structure in `backend/tools/fal_client.py` incorporating a circuit breaker. Ensure it degrades gracefully on timeouts or empty API keys.
   - Files: `backend/tools/fal_client.py`
   - Verify: Run python syntax check and linter on the file.
 
-- [x] **T02: Write mocked fal client tests** `est:1h`
+- [x] **T02: Configured Graceful Degradation Testing for fal** `est:1h`
   Write mocked pytest tests in `backend/tests/test_fal_client.py` to validate successful generation, timeout behavior, and empty API key fallback.
   - Files: `backend/tests/test_fal_client.py`
   - Verify: `uv run pytest backend/tests/test_fal_client.py`

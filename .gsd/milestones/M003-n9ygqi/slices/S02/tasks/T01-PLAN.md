@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T01: Integrate fal call into orchestrator
+# T01: Integrated fal into Research Pipeline
 
 Update the orchestrator logic (`backend/agents/orchestrator.py`) to trigger the fal client generation after research completes. Ensure it handles failure gracefully (non-blocking).
 

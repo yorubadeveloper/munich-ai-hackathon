@@ -23,12 +23,12 @@ S04 wraps up the repo hygiene and documentation required for final submission.
 
 ## Tasks
 
-- [ ] **T01: Add repository security basics** `est:30m`
+- [x] **T01: Verified Security and Dependabot Setup** `est:30m`
   Create `SECURITY.md`, `.github/dependabot.yml`, and `.github/workflows/dependency-review.yml` for basic repository hygiene.
   - Files: `SECURITY.md`, `.github/dependabot.yml`, `.github/workflows/dependency-review.yml`
   - Verify: Verify file existence and YAML validity.
 
-- [ ] **T02: Update submission documentation** `est:1h`
+- [x] **T02: Prepared Submission Narrative Docs** `est:1h`
   Update the `README.md` to fix version drift and write the full hackathon submission narrative.
   - Files: `README.md`
   - Verify: Verify README renders correctly.

@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T03: Pytest suite for fine-tuning trigger and graceful degradation
+# T03: Ensured Graceful Degradation on Failure
 
 Create `backend/tests/test_eval_finetuning.py` with comprehensive tests:
 

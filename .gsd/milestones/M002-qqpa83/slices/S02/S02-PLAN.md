@@ -21,17 +21,17 @@ Fine-tuning results (or skip reason) included in the evaluation output structure
 
 ## Tasks
 
-- [ ] **T01: Extend gliner_client with training and evaluation endpoints** `est:20min`
+- [x] **T01: Added Training Endpoints in GLiNER client** `est:20min`
   Extend `backend/tools/gliner_client.py` with two new async functions:
   - Files: `backend/tools/gliner_client.py`
   - Verify: uv run python -c "from tools.gliner_client import submit_training_job, submit_evaluation; print('import ok')"
 
-- [ ] **T02: Implement conditional fine-tuning trigger with graceful degradation** `est:25min`
+- [x] **T02: Implemented Conditional Trigger Logic** `est:25min`
   Add conditional fine-tuning logic to `backend/eval/evaluator.py`:
   - Files: `backend/eval/evaluator.py`, `backend/eval/generator.py`
   - Verify: uv run python -c "from eval.evaluator import EvalResult; r = EvalResult.__fields__; assert 'fine_tuning_triggered' in r; print('ok')"
 
-- [ ] **T03: Pytest suite for fine-tuning trigger and graceful degradation** `est:25min`
+- [x] **T03: Ensured Graceful Degradation on Failure** `est:25min`
   Create `backend/tests/test_eval_finetuning.py` with comprehensive tests:
   - Files: `backend/tests/test_eval_finetuning.py`
   - Verify: cd backend && uv run pytest tests/test_eval_finetuning.py -v

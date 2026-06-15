@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T02: Write mocked fal client tests
+# T02: Configured Graceful Degradation Testing for fal
 
 Write mocked pytest tests in `backend/tests/test_fal_client.py` to validate successful generation, timeout behavior, and empty API key fallback.
 

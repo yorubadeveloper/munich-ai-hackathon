@@ -4,7 +4,7 @@ estimated_files: 2
 skills_used: []
 ---
 
-# T02: Build PioneerEvalChart Recharts component and integrate into dossier
+# T02: Built Recharts Visual Comparison Chart
 
 Create `frontend/components/PioneerEvalChart.tsx`:
 

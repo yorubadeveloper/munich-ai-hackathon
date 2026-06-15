@@ -23,12 +23,12 @@ S02 provides the saved fal evidence in the DB that S03 will render in the fronte
 
 ## Tasks
 
-- [ ] **T01: Integrate fal call into orchestrator** `est:1h`
+- [x] **T01: Integrated fal into Research Pipeline** `est:1h`
   Update the orchestrator logic (`backend/agents/orchestrator.py`) to trigger the fal client generation after research completes. Ensure it handles failure gracefully (non-blocking).
   - Files: `backend/agents/orchestrator.py`
   - Verify: Check linter and pipeline test logic.
 
-- [ ] **T02: Persist fal evidence securely** `est:1h`
+- [x] **T02: Mapped visual outputs to EvidenceEvents** `est:1h`
   Implement logic to save the resulting fal image URL as an evidence event in the database, verifying first that one hasn't already been created to prevent duplicate generation.
   - Files: `backend/agents/orchestrator.py`, `backend/models.py`
   - Verify: Run integration test showing evidence creation.
