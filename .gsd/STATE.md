@@ -1,7 +1,7 @@
 # GSD State
 
 **Active Milestone:** M003-n9ygqi: Creative Media and Submission Polish
-**Active Slice:** S02: Backend Pipeline fal Integration
+**Active Slice:** S03: Dashboard Dossier Visual Card UI
 **Phase:** evaluating-gates
 **Requirements Status:** 1 active · 1 validated · 0 deferred · 0 out of scope
 
@@ -21,4 +21,4 @@
 - None
 
 ## Next Action
-Start S02: Backend Pipeline fal Integration
+Start S03: Dashboard Dossier Visual Card UI

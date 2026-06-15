@@ -30,6 +30,7 @@ async def test_get_dossier_success(
 
     # Mock DB Session
     mock_db = mocker.AsyncMock()
+    mock_db.add = mocker.MagicMock()
 
     from datetime import datetime
 
@@ -138,6 +139,7 @@ async def test_get_dossier_partial_failures_only(
 
     # Mock DB Session
     mock_db = mocker.AsyncMock()
+    mock_db.add = mocker.MagicMock()
 
     from datetime import datetime
 
@@ -230,6 +232,7 @@ async def test_get_dossier_not_found(app_with_routes: FastAPI, mocker):
     random_id = uuid.uuid4()
 
     mock_db = mocker.AsyncMock()
+    mock_db.add = mocker.MagicMock()
     mock_db.get.return_value = None
 
     async def override_get_db():
@@ -254,6 +257,7 @@ async def test_approve_company_success(app_with_routes: FastAPI, mocker, company
 
     # Mock database session
     mock_db = mocker.AsyncMock()
+    mock_db.add = mocker.MagicMock()
     mock_company = Company(
         id=company_uuid, name="Approve Test Corp", website="https://approve.example.com", status="discovered"
     )
@@ -309,6 +313,7 @@ async def test_reject_company_success(app_with_routes: FastAPI, mocker, company_
 
     # Mock database session
     mock_db = mocker.AsyncMock()
+    mock_db.add = mocker.MagicMock()
     mock_company = Company(
         id=company_uuid, name="Reject Test Corp", website="https://reject.example.com", status="discovered"
     )
@@ -365,6 +370,7 @@ async def test_approve_company_not_found(app_with_routes: FastAPI, mocker):
 
     random_id = uuid.uuid4()
     mock_db = mocker.AsyncMock()
+    mock_db.add = mocker.MagicMock()
     mock_db.get.return_value = None
 
     async def override_get_db():
@@ -391,6 +397,7 @@ async def test_reject_company_not_found(app_with_routes: FastAPI, mocker):
 
     random_id = uuid.uuid4()
     mock_db = mocker.AsyncMock()
+    mock_db.add = mocker.MagicMock()
     mock_db.get.return_value = None
 
     async def override_get_db():
