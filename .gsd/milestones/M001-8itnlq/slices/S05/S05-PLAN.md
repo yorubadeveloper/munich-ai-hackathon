@@ -35,12 +35,12 @@ S05 consumes all code from S01–S04. It produces no new runtime code — only t
   - Files: `backend/scripts/seed_demo_dossier.py`
   - Verify: test -f backend/scripts/seed_demo_dossier.py && cd backend && uv run python -c "import scripts.seed_demo_dossier; print('module imports OK')"
 
-- [ ] **T03: Frontend Type-Check and Lint Verification** `est:15 min`
+- [x] **T03: Verified frontend typecheck and lint both pass clean (exit 0) for the dossier components — no fixes required.** `est:15 min`
   **Why:** The dossier components (OptionalVisualDossier, ApprovalActions, ResourceChart, ResourceChartInner) were added in S03/S04. This task proves they compile cleanly against the TypeScript project and pass linting.
   - Files: `frontend/components/OptionalVisualDossier.tsx`, `frontend/components/ApprovalActions.tsx`, `frontend/components/ResourceChart.tsx`, `frontend/components/ResourceChartInner.tsx`
   - Verify: cd frontend && npm run typecheck && npm run lint
 
-- [ ] **T04: Full Backend Test Suite Regression Check** `est:10 min`
+- [x] **T04: Confirmed full backend pytest suite passes clean (40 passed, 3 subtests, exit 0) with no regressions after S05 test additions.** `est:10 min`
   **Why:** After T01's test additions, we must confirm no regressions across all backend tests — including the fal, evidence, and Tavily client tests established in S01–S04.
   - Verify: cd backend && uv run pytest -v
 

@@ -4,7 +4,7 @@ estimated_files: 4
 skills_used: []
 ---
 
-# T03: Frontend Type-Check and Lint Verification
+# T03: Verified frontend typecheck and lint both pass clean (exit 0) for the dossier components — no fixes required.
 
 **Why:** The dossier components (OptionalVisualDossier, ApprovalActions, ResourceChart, ResourceChartInner) were added in S03/S04. This task proves they compile cleanly against the TypeScript project and pass linting.
 

@@ -24,7 +24,7 @@
 - [x] **S04: Approval and Optional Visual Layer** `risk:medium` `depends:[S03]`
   > After this: The review flow preserves Telegram approval and can show optional fal-style visual output without blocking core company review.
 
-- [ ] **S05: Verification and Demo Readiness** `risk:low` `depends:[S04]`
+- [x] **S05: Verification and Demo Readiness** `risk:low` `depends:[S04]`
   > After this: Local tests/checks prove the evidence flow, UI wiring, partial-failure behavior, and hackathon resource demo narrative.
 
 ## Boundary Map

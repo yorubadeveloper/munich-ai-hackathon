@@ -4,7 +4,7 @@ estimated_files: 7
 skills_used: []
 ---
 
-# T04: Full Backend Test Suite Regression Check
+# T04: Confirmed full backend pytest suite passes clean (40 passed, 3 subtests, exit 0) with no regressions after S05 test additions.
 
 **Why:** After T01's test additions, we must confirm no regressions across all backend tests — including the fal, evidence, and Tavily client tests established in S01–S04.
 
