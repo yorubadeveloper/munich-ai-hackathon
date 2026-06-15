@@ -128,8 +128,8 @@ Configuration:
 
 - `GEMINI_API_KEY`
 - `GEMINI_MODEL`
-- Default in `backend/config.py`: `gemini-2.5-flash`
-- Default in `.env.example`: `gemini-2.5-flash`
+- Default in `backend/config.py`: `gemini-3.5-flash`
+- Default in `.env.example`: `gemini-3.5-flash`
 
 Current functions:
 
@@ -148,8 +148,8 @@ Implementation details worth showing:
 - Fit scoring includes explicit wildcard rules so unspecified user preferences are not penalized.
 
 Note: `README.md` currently contains both `Gemini 2.0 Flash` in the stack section
-and `Google Gemini 2.5 Flash` in the partner section. The config-backed value is
-`gemini-2.5-flash`; demo narration should use that unless the README is cleaned
+and `Google Gemini 3.5 Flash` in the partner section. The config-backed value is
+`gemini-3.5-flash`; demo narration should use that unless the README is cleaned
 up separately.
 
 ### Artistic Use In The Demo

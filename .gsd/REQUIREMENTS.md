@@ -10,6 +10,8 @@ This file is the explicit capability and coverage contract for the project.
 - Description: Render a visual comparison chart in the Next.js company dossier comparing Pioneer and Gemini token-overlap (F1) scores for entity extraction.
 - Why it matters: To provide an immediate, easily digestible understanding of model performance across different entity labels compared to a raw text block, satisfying the Fastino side challenge.
 - Source: M002-qqpa83
+- Primary owning slice: M002-qqpa83/S03
+- Supporting slices: M002-qqpa83/S01
 
 ## Validated
 
@@ -31,11 +33,11 @@ This file is the explicit capability and coverage contract for the project.
 | ID | Class | Status | Primary owner | Supporting | Proof |
 |---|---|---|---|---|---|
 | R001 | failure-visibility | validated | none | none | Automated unit tests with mocks for network failures, missing keys, and service timeouts. All tests pass with 100% resilience coverage. |
-| R002 | core-capability | active | none | none | unmapped |
+| R002 | core-capability | active | M002-qqpa83/S03 | M002-qqpa83/S01 | unmapped |
 
 ## Coverage Summary
 
 - Active requirements: 1
-- Mapped to slices: 0
+- Mapped to slices: 1
 - Validated: 1 (R001)
-- Unmapped active requirements: 1
+- Unmapped active requirements: 0
