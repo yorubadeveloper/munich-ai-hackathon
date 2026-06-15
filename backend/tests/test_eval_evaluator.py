@@ -5,8 +5,6 @@ import pytest
 
 from eval.evaluator import EvalResult, run_evaluation
 
-pytest_plugins = ("pytest_asyncio",)
-
 
 @pytest.fixture
 def synthetic_data_path(tmp_path):
