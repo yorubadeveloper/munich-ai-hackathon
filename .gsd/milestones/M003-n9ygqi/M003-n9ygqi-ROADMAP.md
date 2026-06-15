@@ -16,7 +16,7 @@
 - [x] **S02: Backend Pipeline fal Integration** `risk:medium` `depends:[S01]`
   > After this: Running the pipeline generates and saves a fal visual card evidence event to the database.
 
-- [ ] **S03: Dashboard Dossier Visual Card UI** `risk:low` `depends:[S02]`
+- [x] **S03: Dashboard Dossier Visual Card UI** `risk:low` `depends:[S02]`
   > After this: Dashboard shows the generated visual card in the company dossier, or gracefully degrades when unavailable.
 
 - [ ] **S04: Repo Hardening and Submission Docs** `risk:low` `depends:[]`

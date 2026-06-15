@@ -121,11 +121,39 @@ function normalizeRows<T extends TimestampedRow>(data: unknown): T[] {
     : []
 }
 
+function normalizeDossierTimestamps(dossier: CompanyDossier): CompanyDossier {
+  const normalized = normalizeTimestamps(dossier) as CompanyDossier
+
+  if (
+    normalized.approval_state?.updated_at &&
+    !normalized.approval_state.updated_at.endsWith('Z') &&
+    !/[+-]\d{2}:?\d{2}$/.test(normalized.approval_state.updated_at)
+  ) {
+    normalized.approval_state.updated_at += 'Z'
+  }
+
+  if (normalized.evidence_events) {
+    normalized.evidence_events = normalized.evidence_events.map((event) => {
+      if (
+        event.timestamp &&
+        !event.timestamp.endsWith('Z') &&
+        !/[+-]\d{2}:?\d{2}$/.test(event.timestamp)
+      ) {
+        return { ...event, timestamp: event.timestamp + 'Z' }
+      }
+      return event
+    })
+  }
+
+  return normalized
+}
+
 export async function getCompanyDossier(id: string): Promise<CompanyDossier | null> {
   try {
     const res = await fetch(`${BASE}/api/companies/${id}/dossier`, { cache: 'no-store' })
     if (!res.ok) return null
-    return res.json()
+    const data = await res.json()
+    return normalizeDossierTimestamps(data)
   } catch {
     return null
   }

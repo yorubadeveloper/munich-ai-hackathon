@@ -20,7 +20,12 @@ export default function OptionalVisualDossier({ events }: OptionalVisualDossierP
 
   const promptText = (falEvent.payload?.prompt as string) || ''
   const imageUrl = (falEvent.payload?.image_url as string) || ''
-  const errorMsg = (falEvent.payload?.error as string) || (falEvent.error_context?.error as string) || (falEvent.error_context?.message as string) || ''
+  const errorMsg =
+    (falEvent.payload?.error as string) ||
+    (falEvent.error_context?.error as string) ||
+    (falEvent.error_context?.message as string) ||
+    (falEvent.error_context?.reason as string) ||
+    ''
 
   if (falEvent.status === 'success' && imageUrl) {
     return (
