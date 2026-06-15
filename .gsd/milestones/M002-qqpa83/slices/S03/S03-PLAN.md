@@ -21,17 +21,17 @@ End-to-end: eval script → DB → API → React chart renders correctly
 
 ## Tasks
 
-- [ ] **T01: Implement evaluation result persistence to PostgreSQL** `est:20min`
+- [x] **T01: Persisted Evaluation Results as EvidenceEvents** `est:20min`
   Create `backend/eval/persist.py` with a `persist_eval_results` function:
   - Files: `backend/eval/persist.py`, `backend/tests/test_eval_persist.py`
   - Verify: cd backend && uv run pytest tests/test_eval_persist.py -v
 
-- [ ] **T02: Build PioneerEvalChart Recharts component and integrate into dossier** `est:25min`
+- [x] **T02: Built Recharts Visual Comparison Chart** `est:25min`
   Create `frontend/components/PioneerEvalChart.tsx`:
   - Files: `frontend/components/PioneerEvalChart.tsx`, `frontend/app/companies/[id]/page.tsx`
   - Verify: cd frontend && npm run typecheck && npm run lint
 
-- [ ] **T03: Full verification pass** `est:15min`
+- [x] **T03: Integrated Chart into Company Dossier** `est:15min`
   Run full verification suite:
   - Verify: cd backend && uv run pytest && cd ../frontend && npm run typecheck && npm run lint
 

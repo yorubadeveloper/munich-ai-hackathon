@@ -4,7 +4,7 @@ estimated_files: 2
 skills_used: []
 ---
 
-# T01: Implement evaluation result persistence to PostgreSQL
+# T01: Persisted Evaluation Results as EvidenceEvents
 
 Create `backend/eval/persist.py` with a `persist_eval_results` function:
 

@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T01: Extend gliner_client with training and evaluation endpoints
+# T01: Added Training Endpoints in GLiNER client
 
 Extend `backend/tools/gliner_client.py` with two new async functions:
 

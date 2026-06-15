@@ -1,4 +1,10 @@
-# GSD context snapshot (2026-06-14T01:35:54.162Z)
+# GSD context snapshot (2026-06-15T13:23:58.131Z)
 
-## Recent gsd_exec runs
-- [2d6c3d14-a538-4b0c-961d-826d2fd22ff7] python exit:0 — Extract markdown headings from research/report docs
+## Top project memories
+- [MEM001] (architecture) What charting library to use for the visual comparison chart in the Next.js dossier UI. Chose: Recharts. Rationale: Recharts provides simple, declarative React components that look great out of the box and natively support radar/bar charts perfect for comparing multiple labels..
+- [MEM002] (architecture) How to handle fine-tuning failures if the Pioneer training API is inaccessible. Chose: Graceful Degradation. Rationale: Prevents a fragile external dependency (training API during a hackathon) from blocking the core evaluation pipeline and evidence display. The pipeline will log the error and continue using the base m….
+- [MEM003] (architecture) What charting library to use for the visual comparison chart in the Next.js dossier UI. Chose: Recharts. Rationale: Recharts provides simple, declarative React components that look great out of the box and natively support radar/bar charts perfect for comparing multiple labels..
+- [MEM004] (architecture) How to handle fine-tuning failures if the Pioneer training API is inaccessible. Chose: Graceful Degradation. Rationale: Prevents a fragile external dependency (training API during a hackathon) from blocking the core evaluation pipeline and evidence display. The pipeline will log the error and continue using the base m….
+- [MEM005] (architecture) How to integrate fal.ai visual generation into the company research pipeline Chose: Fire-and-forget after research.run() with circuit-breaking (empty key check, try/except, 30s timeout), storing results as EvidenceEvents. Rationale: fal must be strictly non-blocking per the hackathon constraint. Injecting after research completes means the pipeline never waits on fal, and storing results as EvidenceEvents keeps it consistent wit….
+- [MEM011] (architecture) How to persist generated evaluation datasets, result summaries, and conditional training batches for Pioneer evaluation auditability. Chose: Version key arti
+…[truncated]

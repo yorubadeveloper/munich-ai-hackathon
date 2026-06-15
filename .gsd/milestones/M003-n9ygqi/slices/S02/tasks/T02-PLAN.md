@@ -4,7 +4,7 @@ estimated_files: 2
 skills_used: []
 ---
 
-# T02: Persist fal evidence securely
+# T02: Mapped visual outputs to EvidenceEvents
 
 Implement logic to save the resulting fal image URL as an evidence event in the database, verifying first that one hasn't already been created to prevent duplicate generation.
 

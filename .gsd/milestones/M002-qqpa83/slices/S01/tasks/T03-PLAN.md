@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T03: Build evaluator script with dual extraction and scoring
+# T03: Implemented Token-Overlap Metrics
 
 Create `backend/eval/evaluator.py` that orchestrates the evaluation pipeline.
 

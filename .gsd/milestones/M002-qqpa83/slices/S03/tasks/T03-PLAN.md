@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T03: Full verification pass
+# T03: Integrated Chart into Company Dossier
 
 Run full verification suite:
 

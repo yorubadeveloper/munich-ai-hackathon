@@ -4,7 +4,7 @@ estimated_files: 3
 skills_used: []
 ---
 
-# T01: Add repository security basics
+# T01: Verified Security and Dependabot Setup
 
 Create `SECURITY.md`, `.github/dependabot.yml`, and `.github/workflows/dependency-review.yml` for basic repository hygiene.
 

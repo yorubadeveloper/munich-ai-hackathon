@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T02: Update submission documentation
+# T02: Prepared Submission Narrative Docs
 
 Update the `README.md` to fix version drift and write the full hackathon submission narrative.
 

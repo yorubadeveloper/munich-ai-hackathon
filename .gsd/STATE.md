@@ -1,8 +1,8 @@
 # GSD State
 
-**Active Milestone:** M003-n9ygqi: Creative Media and Submission Polish
-**Active Slice:** S04: Repo Hardening and Submission Docs
-**Phase:** completed
+**Last Completed Milestone:** M003-n9ygqi: Creative Media and Submission Polish
+**Active Slice:** None
+**Phase:** complete
 **Requirements Status:** 1 active · 1 validated · 0 deferred · 0 out of scope
 
 ## Milestone Registry
@@ -21,4 +21,4 @@
 - None
 
 ## Next Action
-All milestones completed. Proceed to maintenance or new features as needed.
+All milestones complete.

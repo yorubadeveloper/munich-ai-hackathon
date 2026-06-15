@@ -1,7 +1,7 @@
 # Codebase Map
 
-Generated: 2026-06-14T23:36:21Z | Files: 84 | Described: 0/84
-<!-- gsd:codebase-meta {"generatedAt":"2026-06-14T23:36:21Z","fingerprint":"1332f5eba9cbae39961e222e95ecb8825d7afe5f","fileCount":84,"truncated":false} -->
+Generated: 2026-06-15T12:35:52Z | Files: 96 | Described: 0/96
+<!-- gsd:codebase-meta {"generatedAt":"2026-06-15T12:35:52Z","fingerprint":"1c4daf97ad5667ec14a326bd77b62cfb75b09b65","fileCount":96,"truncated":false} -->
 
 ### (root)/
 - `.env.example`
@@ -10,8 +10,10 @@ Generated: 2026-06-14T23:36:21Z | Files: 84 | Described: 0/84
 - `docker-compose.yml`
 - `pyproject.toml`
 - `README.md`
+- `SECURITY.md`
 
 ### .github/
+- `.github/dependabot.yml`
 - `.github/PULL_REQUEST_TEMPLATE.md`
 
 ### .github/workflows/
@@ -49,6 +51,14 @@ Generated: 2026-06-14T23:36:21Z | Files: 84 | Described: 0/84
 - `backend/api/profile.py`
 - `backend/api/run.py`
 
+### backend/eval/
+- `backend/eval/__init__.py`
+- `backend/eval/evaluator.py`
+- `backend/eval/finetune.py`
+- `backend/eval/generator.py`
+- `backend/eval/metrics.py`
+- `backend/eval/persist.py`
+
 ### backend/schemas/
 - `backend/schemas/dossier.py`
 - `backend/schemas/evidence.py`
@@ -59,6 +69,9 @@ Generated: 2026-06-14T23:36:21Z | Files: 84 | Described: 0/84
 ### backend/tests/
 - `backend/tests/conftest.py`
 - `backend/tests/test_dossier.py`
+- `backend/tests/test_eval_evaluator.py`
+- `backend/tests/test_eval_finetune.py`
+- `backend/tests/test_eval_metrics.py`
 - `backend/tests/test_evidence.py`
 - `backend/tests/test_fal_client.py`
 - `backend/tests/test_fal.py`
@@ -66,6 +79,7 @@ Generated: 2026-06-14T23:36:21Z | Files: 84 | Described: 0/84
 - `backend/tests/test_tavily_client.py`
 
 ### backend/tests/fixtures/
+- `backend/tests/fixtures/eval_synthetic_sample.json`
 - `backend/tests/fixtures/evidence.py`
 
 ### backend/tg/

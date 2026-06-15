@@ -4,7 +4,7 @@ estimated_files: 1
 skills_used: []
 ---
 
-# T01: Create robust fal client
+# T01: Tested fal Client and Circuit Breaking
 
 Create the base fal client structure in `backend/tools/fal_client.py` incorporating a circuit breaker. Ensure it degrades gracefully on timeouts or empty API keys.
 
