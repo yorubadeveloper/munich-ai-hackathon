@@ -1,9 +1,10 @@
 # Codebase Map
 
-Generated: 2026-06-15T12:35:52Z | Files: 96 | Described: 0/96
-<!-- gsd:codebase-meta {"generatedAt":"2026-06-15T12:35:52Z","fingerprint":"1c4daf97ad5667ec14a326bd77b62cfb75b09b65","fileCount":96,"truncated":false} -->
+Generated: 2026-06-15T16:14:50Z | Files: 99 | Described: 0/99
+<!-- gsd:codebase-meta {"generatedAt":"2026-06-15T16:14:50Z","fingerprint":"289620b5c6b30ea061cbe209e2550d6f35f9bbca","fileCount":99,"truncated":false} -->
 
 ### (root)/
+- `.aikido.yml`
 - `.env.example`
 - `.gitignore`
 - `ARCHITECTURE.md`
@@ -136,6 +137,10 @@ Generated: 2026-06-15T12:35:52Z | Files: 96 | Described: 0/96
 - `frontend/components/ResourceChartInner.tsx`
 - `frontend/components/StatBar.tsx`
 - `frontend/components/StatusBadge.tsx`
+
+### frontend/dummy-sharp/
+- `frontend/dummy-sharp/index.js`
+- `frontend/dummy-sharp/package.json`
 
 ### frontend/lib/
 - `frontend/lib/api.ts`
