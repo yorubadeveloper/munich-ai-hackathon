@@ -7,6 +7,7 @@ from config import settings
 
 log = logging.getLogger(__name__)
 
+
 async def generate_visual(company_name: str, summary: str) -> dict | None:
     """
     Generate an abstract visual representation of the company using fal.ai.
@@ -32,15 +33,12 @@ async def generate_visual(company_name: str, summary: str) -> dict | None:
             },
             client_timeout=30.0,
         )
-        
+
         if result and "images" in result and len(result["images"]) > 0:
             image_url = result["images"][0].get("url")
             if image_url:
-                return {
-                    "image_url": image_url,
-                    "prompt": prompt
-                }
-        
+                return {"image_url": image_url, "prompt": prompt}
+
         log.error(f"fal API returned unexpected structure: {result}")
         return None
     except Exception as e:
