@@ -12,7 +12,7 @@
 
 ## Slices
 
-- [ ] **S01: Synthetic Data Generation and F1 Evaluation Engine** `risk:medium` `depends:[]`
+- [x] **S01: Synthetic Data Generation and F1 Evaluation Engine** `risk:medium` `depends:[]`
   > After this: After this, running the generator script produces 30-50 synthetic job postings as JSON, and the evaluator computes per-label F1 scores comparing Pioneer vs Gemini extraction. Pytest proves F1 calculation correctness with static fixtures.
 
 - [ ] **S02: Pioneer Training Integration and Conditional Fine-Tuning** `risk:high` `depends:[S01]`

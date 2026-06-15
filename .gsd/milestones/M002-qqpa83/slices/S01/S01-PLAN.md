@@ -21,22 +21,22 @@ Evaluation output JSON schema matches what S03 will persist as pioneer-eval evid
 
 ## Tasks
 
-- [ ] **T01: Create synthetic data generator** `est:30min`
+- [x] **T01: Create synthetic data generator** `est:30min`
   Create `backend/eval/__init__.py` and `backend/eval/generator.py`.
   - Files: `backend/eval/__init__.py`, `backend/eval/generator.py`
   - Verify: uv run python -c "from eval.generator import SyntheticJobPosting; print('import ok')"
 
-- [ ] **T02: Implement F1 metric calculation module** `est:20min`
+- [x] **T02: Implement F1 metric calculation module** `est:20min`
   Create `backend/eval/metrics.py` with token-overlap F1 score calculation.
   - Files: `backend/eval/metrics.py`
   - Verify: uv run python -c "from eval.metrics import token_overlap_f1; assert token_overlap_f1('hello world', 'hello world') == 1.0; print('ok')"
 
-- [ ] **T03: Build evaluator script with dual extraction and scoring** `est:30min`
+- [x] **T03: Build evaluator script with dual extraction and scoring** `est:30min`
   Create `backend/eval/evaluator.py` that orchestrates the evaluation pipeline.
   - Files: `backend/eval/evaluator.py`
   - Verify: uv run python -c "from eval.evaluator import EvalResult; print('import ok')"
 
-- [ ] **T04: Create static test fixtures and pytest suite** `est:25min`
+- [x] **T04: Create static test fixtures and pytest suite** `est:25min`
   Create test fixtures and comprehensive pytest tests.
   - Files: `backend/tests/fixtures/eval_synthetic_sample.json`, `backend/tests/test_eval_metrics.py`, `backend/tests/test_eval_evaluator.py`
   - Verify: cd backend && uv run pytest tests/test_eval_metrics.py tests/test_eval_evaluator.py -v

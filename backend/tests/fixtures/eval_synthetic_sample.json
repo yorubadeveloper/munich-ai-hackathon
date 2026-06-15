@@ -1,0 +1,38 @@
+[
+  {
+    "text": "We are looking for a Senior Software Engineer at TechCorp. You will work with Python and React. The salary is $150,000. It is a Remote position.",
+    "ground_truth": {
+      "company_name": "TechCorp",
+      "job_title": "Senior Software Engineer",
+      "tech_stack": "Python, React",
+      "company_stage": "",
+      "hiring_manager": "",
+      "salary": "$150,000",
+      "remote_policy": "Remote"
+    }
+  },
+  {
+    "text": "Join our early-stage Seed startup, InnovateIt, as a Data Scientist. Reach out to John Doe, our VP of Engineering. Strong knowledge of PyTorch and AWS is required. Hybrid role in SF paying 120k.",
+    "ground_truth": {
+      "company_name": "InnovateIt",
+      "job_title": "Data Scientist",
+      "tech_stack": "PyTorch, AWS",
+      "company_stage": "Seed",
+      "hiring_manager": "John Doe",
+      "salary": "120k",
+      "remote_policy": "Hybrid"
+    }
+  },
+  {
+    "text": "No salary listed, just pure passion. Need a backend dev with Go and PostgreSQL for our Series A company. On-site in NYC.",
+    "ground_truth": {
+      "company_name": "",
+      "job_title": "backend dev",
+      "tech_stack": "Go, PostgreSQL",
+      "company_stage": "Series A",
+      "hiring_manager": "",
+      "salary": "",
+      "remote_policy": "On-site"
+    }
+  }
+]
